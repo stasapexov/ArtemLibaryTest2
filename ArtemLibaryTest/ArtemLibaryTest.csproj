@@ -9,4 +9,8 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Version>1.0.7</Version>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="MySql.Data" Version="9.6.0" />
+	</ItemGroup>
 </Project>
