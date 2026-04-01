@@ -5,6 +5,8 @@ namespace ArtemLibaryTest.Core
 {
     public class MySqlAuthService : IAuthService
     {
+        // я тут
+
         private readonly string _connectionString;
 
         public MySqlAuthService(string connectionString)
