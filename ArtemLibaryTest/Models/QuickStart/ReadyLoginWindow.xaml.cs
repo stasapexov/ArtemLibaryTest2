@@ -1,11 +1,13 @@
 ﻿using ArtemLibaryTest.Core;
+using ArtemLibaryTest.Models.QuickStart;
 using System.Windows;
+using System.Windows.Controls;
 
-namespace ArtemLibaryTest.QuickStart
+namespace ArtemLibaryTest.Models.QuickStart
 {
     public partial class ReadyLoginWindow : Window
     {
-        private readonly AuthUiContext _context;
+        private readonly Core.IAuthService _context;
 
         internal ReadyLoginWindow(AuthUiContext context)
         {

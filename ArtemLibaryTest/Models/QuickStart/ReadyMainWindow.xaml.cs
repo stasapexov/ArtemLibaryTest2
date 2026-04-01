@@ -1,4 +1,5 @@
 ﻿using ArtemLibaryTest.Core;
+using ArtemLibaryTest.Models.QuickStart;
 using System.Windows;
 
 namespace ArtemLibaryTest.QuickStart

@@ -1,4 +1,4 @@
-﻿ ﻿<Window x:Class="ArtemLibaryTest.QuickStart.ReadyRegisterWindow"
+﻿<Window x:Class="ArtemLibaryTest.QuickStart.ReadyRegisterWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Регистрация" Height="360" Width="360" WindowStartupLocation="CenterScreen">
