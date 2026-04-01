@@ -1,4 +1,4 @@
-﻿<Window x:Class="ArtemLibaryTest.QuickStart.ReadyMainWindow"
+<Window x:Class="ArtemLibaryTest.QuickStart.ReadyMainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Главное меню" Height="220" Width="360" WindowStartupLocation="CenterScreen">
