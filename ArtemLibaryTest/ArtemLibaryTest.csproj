@@ -1,12 +1,35 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
 	<PropertyGroup>
 		<TargetFramework>net8.0-windows</TargetFramework>
 		<UseWPF>true</UseWPF>
+		<EnableDefaultPageItems>true</EnableDefaultPageItems>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<Title>TestLibrary2</Title>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Version>1.0.7</Version>
+		<Version>1.0.8</Version>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<Page Include="QuickStart\ReadyLoginWindow.xaml" />
+		<Page Include="QuickStart\ReadyRegisterWindow.xaml" />
+		<Page Include="QuickStart\ReadyMainWindow.xaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="QuickStart\ReadyLoginWindow.xaml.cs">
+			<DependentUpon>ReadyLoginWindow.xaml</DependentUpon>
+		</Compile>
+		<Compile Update="QuickStart\ReadyRegisterWindow.xaml.cs">
+			<DependentUpon>ReadyRegisterWindow.xaml</DependentUpon>
+		</Compile>
+		<Compile Update="QuickStart\ReadyMainWindow.xaml.cs">
+			<DependentUpon>ReadyMainWindow.xaml</DependentUpon>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MySql.Data" Version="9.2.0" />
+	</ItemGroup>
 </Project>
