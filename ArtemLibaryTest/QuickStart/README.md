@@ -4,7 +4,12 @@
 
 - Вход
 - Регистрация
-- Главное меню (с `ID пользователя`)
+- Главное меню на `ModernWpf NavigationView`
+
+## Особенность
+
+Меню в главном окне может открывать страницы из проекта-потребителя.
+Для этого в своём проекте реализуй `IMenuProvider` и передай его в `AuthUiOptions.MenuProvider`.
 
 ## Подключение
 
@@ -16,7 +21,8 @@ var authService = new MySqlAuthService("server=localhost;port=3306;database=exam
 var loginWindow = AuthUiLauncher.CreateLoginWindow(authService, new AuthUiOptions
 {
     AppTitle = "Exam Demo",
-    MainWelcomeText = "Добро пожаловать"
+    MainWelcomeText = "Добро пожаловать",
+    MenuProvider = new MyMenuProvider() // реализация в приложении-потребителе
 });
 
 loginWindow.Show();

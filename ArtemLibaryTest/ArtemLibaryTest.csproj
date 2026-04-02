@@ -31,5 +31,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="MySql.Data" Version="9.2.0" />
+		<PackageReference Include="ModernWpfUI" Version="0.9.6" />
 	</ItemGroup>
 </Project>

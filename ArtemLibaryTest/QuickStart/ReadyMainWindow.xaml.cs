@@ -1,19 +1,105 @@
 ﻿using ArtemLibaryTest.Core;
+using ModernWpf.Controls;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace ArtemLibaryTest.QuickStart
 {
     public partial class ReadyMainWindow : Window
     {
         private readonly AuthUiContext _context;
+        private readonly Dictionary<string, Func<Page>> _pageFactoryByTag = new();
 
         internal ReadyMainWindow(AuthUiContext context)
         {
             InitializeComponent();
             _context = context;
             Title = $"{_context.Options.AppTitle} - Главное меню";
-            WelcomeText.Text = _context.Options.MainWelcomeText;
-            UserIdLabel.Content = $"ID пользователя: {Session.CurrentUser?.Id}";
+            HeaderText.Text = _context.Options.MainWelcomeText;
+            UserInfoText.Text = $"ID: {Session.CurrentUser?.Id} | Роль: {Session.CurrentUser?.Status}";
+            NavView.IsSettingsVisible = _context.Options.IsSettingsVisible;
+
+            BuildMenu();
+        }
+
+        private void BuildMenu()
+        {
+            var currentUser = Session.CurrentUser;
+            if (currentUser == null)
+            {
+                return;
+            }
+
+            var menuProvider = _context.Options.MenuProvider ?? new DefaultMenuProvider(_context.Options);
+            var items = menuProvider.GetMenuItems(currentUser);
+
+            NavigationViewItem? firstItem = null;
+
+            foreach (var item in items)
+            {
+                if (!CanOpenForRole(item.Roles, currentUser.Status))
+                {
+                    continue;
+                }
+
+                var navItem = new NavigationViewItem
+                {
+                    Content = item.Title,
+                    Tag = item.Tag,
+                    Icon = new SymbolIcon(ParseSymbol(item.Icon))
+                };
+
+                NavView.MenuItems.Add(navItem);
+                _pageFactoryByTag[item.Tag] = item.CreatePage;
+
+                firstItem ??= navItem;
+            }
+
+            if (firstItem != null)
+            {
+                NavView.SelectedItem = firstItem;
+                NavigateToTag(firstItem.Tag?.ToString());
+            }
+        }
+
+        private static bool CanOpenForRole(IEnumerable<string> roles, string? status)
+        {
+            if (string.IsNullOrWhiteSpace(status))
+            {
+                return false;
+            }
+
+            return roles.Any(r => string.Equals(r, status, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static Symbol ParseSymbol(string icon)
+        {
+            return Enum.TryParse(icon, true, out Symbol parsed) ? parsed : Symbol.Page;
+        }
+
+        private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        {
+            if (args.SelectedItemContainer is not NavigationViewItem selectedItem)
+            {
+                return;
+            }
+
+            NavigateToTag(selectedItem.Tag?.ToString());
+        }
+
+        private void NavigateToTag(string? tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag))
+            {
+                return;
+            }
+
+            if (!_pageFactoryByTag.TryGetValue(tag, out var createPage))
+            {
+                return;
+            }
+
+            ContentFrame.Navigate(createPage());
         }
 
         private void Logout_Click(object sender, RoutedEventArgs e)

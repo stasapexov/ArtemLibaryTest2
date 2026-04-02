@@ -1,0 +1,11 @@
+<Page x:Class="ArtemLibaryTest.SampleWpf.Pages.ProfilePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="ProfilePage">
+    <Grid Margin="20">
+        <StackPanel>
+            <TextBlock Text="Профиль пользователя" FontSize="24" FontWeight="Bold" />
+            <TextBlock Margin="0,12,0,0" Text="Эту страницу добавил проект-потребитель, а меню открывает библиотека."/>
+        </StackPanel>
+    </Grid>
+</Page>

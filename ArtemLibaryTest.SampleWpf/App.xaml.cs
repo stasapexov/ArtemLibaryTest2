@@ -14,7 +14,9 @@ namespace ArtemLibaryTest.SampleWpf
             var options = new AuthUiOptions
             {
                 AppTitle = "Exam Demo",
-                MainWelcomeText = "Готовое главное меню из библиотеки"
+                MainWelcomeText = "Готовое главное меню из библиотеки",
+                IsSettingsVisible = true,
+                MenuProvider = new AppMenuProvider()
             };
 
             var loginWindow = AuthUiLauncher.CreateLoginWindow(authService, options);

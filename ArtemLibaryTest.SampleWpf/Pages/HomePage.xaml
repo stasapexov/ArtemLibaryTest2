@@ -1,0 +1,10 @@
+<Page x:Class="ArtemLibaryTest.SampleWpf.Pages.HomePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="HomePage">
+    <Grid Margin="20">
+        <TextBlock Text="Главная страница из проекта-потребителя"
+                   FontSize="24"
+                   FontWeight="Bold" />
+    </Grid>
+</Page>

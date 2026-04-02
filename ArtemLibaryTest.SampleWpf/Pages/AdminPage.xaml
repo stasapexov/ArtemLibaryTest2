@@ -1,0 +1,10 @@
+<Page x:Class="ArtemLibaryTest.SampleWpf.Pages.AdminPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="AdminPage">
+    <Grid Margin="20">
+        <TextBlock Text="Админ панель (видна только admin)"
+                   FontSize="24"
+                   FontWeight="Bold" />
+    </Grid>
+</Page>

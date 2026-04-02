@@ -1,7 +1,7 @@
 # Максимально быстрый старт: готовый вход, регистрация и главное окно из библиотеки
 
-Теперь UI-экраны лежат в самой библиотеке `ArtemLibaryTest.QuickStart`.
-В приложении нужно только передать `IAuthService` и вызвать `AuthUiLauncher.CreateLoginWindow(...)`.
+Теперь UI-экраны входа/регистрации и главное меню лежат в библиотеке `ArtemLibaryTest.QuickStart`.
+Главное меню построено на `ModernWpf NavigationView` и может открывать страницы из проекта-потребителя.
 
 ## SQL для phpMyAdmin / MySQL
 
@@ -23,10 +23,12 @@ CREATE TABLE IF NOT EXISTS users (
 
 1. Прописать строку подключения в `DbConfig.cs`.
 2. В `App.xaml.cs` создать `MySqlAuthService`.
-3. Вызвать `AuthUiLauncher.CreateLoginWindow(authService, options)`.
+3. Создать `IMenuProvider` в своём проекте и вернуть нужные страницы по ролям.
+4. Вызвать `AuthUiLauncher.CreateLoginWindow(authService, options)`.
 
 ## Что ты получаешь сразу
 
 - Готовую страницу входа.
 - Готовую страницу регистрации.
-- Готовое главное окно с `ID пользователя` в label.
+- Готовое главное окно с `NavigationView`.
+- Ролевое меню (admin/user/manager) для страниц из твоего проекта.

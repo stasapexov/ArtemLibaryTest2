@@ -7,7 +7,10 @@ namespace ArtemLibaryTest.QuickStart
     {
         public static Window CreateLoginWindow(IAuthService authService, AuthUiOptions? options = null)
         {
-            var context = new AuthUiContext(authService, options ?? new AuthUiOptions());
+            var resolvedOptions = options ?? new AuthUiOptions();
+            resolvedOptions.MenuProvider ??= new DefaultMenuProvider(resolvedOptions);
+
+            var context = new AuthUiContext(authService, resolvedOptions);
             return new ReadyLoginWindow(context);
         }
     }
