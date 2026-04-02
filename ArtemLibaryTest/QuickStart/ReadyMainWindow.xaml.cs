@@ -1,14 +1,14 @@
 ﻿using ArtemLibaryTest.Core;
 using ModernWpf.Controls;
 using System.Windows;
-using System.Windows.Controls;
+using WpfPage = System.Windows.Controls.Page;
 
 namespace ArtemLibaryTest.QuickStart
 {
     public partial class ReadyMainWindow : Window
     {
         private readonly AuthUiContext _context;
-        private readonly Dictionary<string, Func<Page>> _pageFactoryByTag = new();
+        private readonly Dictionary<string, Func<WpfPage>> _pageFactoryByTag = new();
 
         internal ReadyMainWindow(AuthUiContext context)
         {
@@ -105,7 +105,8 @@ namespace ArtemLibaryTest.QuickStart
         private void Logout_Click(object sender, RoutedEventArgs e)
         {
             Session.Logout();
-            new ReadyLoginWindow(_context).Show();
+            var loginWindow = new ReadyLoginWindow(_context);
+            loginWindow.Show();
             Close();
         }
     }
