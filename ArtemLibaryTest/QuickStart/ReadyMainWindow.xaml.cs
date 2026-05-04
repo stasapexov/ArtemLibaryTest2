@@ -34,11 +34,23 @@ namespace ArtemLibaryTest.QuickStart
             var items = menuProvider.GetMenuItems(currentUser);
 
             NavigationViewItem? firstItem = null;
+            var usedTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var item in items)
             {
                 if (!CanOpenForRole(item.Roles, currentUser.Status))
                 {
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(item.Tag))
+                {
+                    continue;
+                }
+
+                if (!usedTags.Add(item.Tag))
+                {
+                    MessageBox.Show($"Дублирующийся Tag в меню: {item.Tag}. У каждого пункта должен быть уникальный Tag.", "Ошибка конфигурации меню");
                     continue;
                 }
 

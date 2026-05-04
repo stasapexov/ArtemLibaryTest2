@@ -27,3 +27,6 @@ var loginWindow = AuthUiLauncher.CreateLoginWindow(authService, new AuthUiOption
 
 loginWindow.Show();
 ```
+
+
+> Важно: `Tag` каждого пункта меню должен быть уникальным (например `Admin1`, `Admin2`, `Admin3`).
