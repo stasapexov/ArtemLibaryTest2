@@ -71,7 +71,8 @@ VALUES (@name, @password, @login, @phone, @status, @money, @img);";
             insertCommand.Parameters.AddWithValue("@phone", phone);
             insertCommand.Parameters.AddWithValue("@status", "user");
             insertCommand.Parameters.AddWithValue("@money", 0);
-            insertCommand.Parameters.AddWithValue("@img", DBNull.Value);
+            // Для схем, где img NOT NULL, сохраняем пустой blob по умолчанию.
+            insertCommand.Parameters.AddWithValue("@img", Array.Empty<byte>());
 
             return insertCommand.ExecuteNonQuery() > 0;
         }
