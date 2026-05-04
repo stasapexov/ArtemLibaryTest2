@@ -25,10 +25,12 @@ namespace ArtemLibaryTest.QuickStart
                 return;
             }
 
-            NameText.Text = $"Имя: {user.Name}";
-            LoginText.Text = $"Логин: {user.Login}";
-            PasswordText.Text = $"Пароль: {user.Password}";
-            MoneyText.Text = $"Деньги: {user.Money:0.00}";
+            NameText.Text = user.Name;
+            LoginInput.Text = user.Login;
+            PasswordInput.Password = user.Password;
+            PhoneInput.Text = user.Phone;
+            EmailInput.Text = string.Empty;
+            MoneyText.Text = $"{user.Money:0.00} ₽";
 
             if (user.Img.Length == 0)
             {
@@ -52,6 +54,21 @@ namespace ArtemLibaryTest.QuickStart
             {
                 LoadUserInfo(Session.CurrentUser);
             }
+        }
+
+        private void SaveProfile_Click(object sender, RoutedEventArgs e)
+        {
+            if (Session.CurrentUser == null)
+            {
+                MessageBox.Show("Пользователь не найден.");
+                return;
+            }
+
+            Session.CurrentUser.Login = LoginInput.Text.Trim();
+            Session.CurrentUser.Password = PasswordInput.Password;
+            Session.CurrentUser.Phone = PhoneInput.Text.Trim();
+
+            MessageBox.Show("Изменения сохранены в текущей сессии.");
         }
     }
 }
