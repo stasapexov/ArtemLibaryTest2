@@ -1,0 +1,6 @@
+<Window x:Class="ArtemLibaryTest.QuickStart.UserProfileWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Профиль" Height="420" Width="760" WindowStartupLocation="CenterOwner">
+    <Frame x:Name="ProfileFrame" NavigationUIVisibility="Hidden"/>
+</Window>

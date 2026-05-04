@@ -114,6 +114,16 @@ namespace ArtemLibaryTest.QuickStart
             ContentFrame.Navigate(createPage());
         }
 
+
+        private void OpenProfile_Click(object sender, RoutedEventArgs e)
+        {
+            var profileWindow = new UserProfileWindow(_context)
+            {
+                Owner = this
+            };
+            profileWindow.ShowDialog();
+        }
+
         private void Logout_Click(object sender, RoutedEventArgs e)
         {
             Session.Logout();
