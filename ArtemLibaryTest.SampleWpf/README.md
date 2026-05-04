@@ -15,7 +15,9 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(100) NOT NULL,
     login VARCHAR(100) NOT NULL UNIQUE,
     phone VARCHAR(20) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'user'
+    status VARCHAR(20) NOT NULL DEFAULT 'user',
+    money DOUBLE NOT NULL DEFAULT 0,
+    img LONGBLOB NULL
 );
 ```
 
@@ -35,3 +37,6 @@ CREATE TABLE IF NOT EXISTS users (
 
 
 > Важно: `Tag` каждого пункта меню должен быть уникальным (например `Admin1`, `Admin2`, `Admin3`).
+
+- Профиль пользователя с аватаркой (img blob), логином, паролем и балансом.
+- Кнопку пополнения с окном ввода карты/пароля и обновлением money.

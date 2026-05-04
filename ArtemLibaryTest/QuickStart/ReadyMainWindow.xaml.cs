@@ -30,7 +30,7 @@ namespace ArtemLibaryTest.QuickStart
                 return;
             }
 
-            var menuProvider = _context.Options.MenuProvider ?? new DefaultMenuProvider(_context.Options);
+            var menuProvider = _context.Options.MenuProvider ?? new DefaultMenuProvider(_context.Options, _context);
             var items = menuProvider.GetMenuItems(currentUser);
 
             NavigationViewItem? firstItem = null;

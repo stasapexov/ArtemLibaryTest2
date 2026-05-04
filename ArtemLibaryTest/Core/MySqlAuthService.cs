@@ -18,7 +18,7 @@ namespace ArtemLibaryTest.Core
             connection.Open();
 
             const string sql = @"
-SELECT id, name, password, login, phone, status
+SELECT id, name, password, login, phone, status, money, img
 FROM users
 WHERE login = @login AND password = @password
 LIMIT 1;";
@@ -39,7 +39,9 @@ LIMIT 1;";
                 reader.GetString("password"),
                 reader.GetString("login"),
                 reader.GetString("phone"),
-                reader.GetString("status"));
+                reader.GetString("status"),
+                reader.IsDBNull(reader.GetOrdinal("money")) ? 0 : reader.GetDouble("money"),
+                reader.IsDBNull(reader.GetOrdinal("img")) ? [] : (byte[])reader["img"]);
         }
 
         public bool Register(string login, string password, string name, string phone)
@@ -59,8 +61,8 @@ LIMIT 1;";
             }
 
             const string insertSql = @"
-INSERT INTO users (name, password, login, phone, status)
-VALUES (@name, @password, @login, @phone, @status);";
+INSERT INTO users (name, password, login, phone, status, money, img)
+VALUES (@name, @password, @login, @phone, @status, @money, @img);";
 
             using var insertCommand = new MySqlCommand(insertSql, connection);
             insertCommand.Parameters.AddWithValue("@name", name);
@@ -68,8 +70,33 @@ VALUES (@name, @password, @login, @phone, @status);";
             insertCommand.Parameters.AddWithValue("@login", login);
             insertCommand.Parameters.AddWithValue("@phone", phone);
             insertCommand.Parameters.AddWithValue("@status", "user");
+            insertCommand.Parameters.AddWithValue("@money", 0);
+            insertCommand.Parameters.AddWithValue("@img", DBNull.Value);
 
             return insertCommand.ExecuteNonQuery() > 0;
+        }
+
+        public bool TopUpUserMoney(int userId, string userPassword, double amount)
+        {
+            if (amount <= 0)
+            {
+                return false;
+            }
+
+            using var connection = new MySqlConnection(_connectionString);
+            connection.Open();
+
+            const string sql = @"
+UPDATE users
+SET money = IFNULL(money, 0) + @amount
+WHERE id = @id AND password = @password;";
+
+            using var command = new MySqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@amount", amount);
+            command.Parameters.AddWithValue("@id", userId);
+            command.Parameters.AddWithValue("@password", userPassword);
+
+            return command.ExecuteNonQuery() > 0;
         }
     }
 }
