@@ -99,5 +99,43 @@ WHERE id = @id AND password = @password;";
 
             return command.ExecuteNonQuery() > 0;
         }
+
+        public bool UpdateProfile(int userId, string login, string password, string phone)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            connection.Open();
+
+            const string sql = @"
+UPDATE users
+SET login = @login,
+    password = @password,
+    phone = @phone
+WHERE id = @id;";
+
+            using var command = new MySqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@login", login);
+            command.Parameters.AddWithValue("@password", password);
+            command.Parameters.AddWithValue("@phone", phone);
+            command.Parameters.AddWithValue("@id", userId);
+
+            return command.ExecuteNonQuery() > 0;
+        }
+
+        public bool UpdateAvatar(int userId, byte[] imageBytes)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            connection.Open();
+
+            const string sql = @"
+UPDATE users
+SET img = @img
+WHERE id = @id;";
+
+            using var command = new MySqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@img", imageBytes);
+            command.Parameters.AddWithValue("@id", userId);
+
+            return command.ExecuteNonQuery() > 0;
+        }
     }
 }

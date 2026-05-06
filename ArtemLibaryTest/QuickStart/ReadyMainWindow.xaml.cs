@@ -16,7 +16,7 @@ namespace ArtemLibaryTest.QuickStart
             _context = context;
             Title = $"{_context.Options.AppTitle} - Главное меню";
             HeaderText.Text = _context.Options.MainWelcomeText;
-            UserInfoText.Text = $"ID: {Session.CurrentUser?.Id} | Роль: {Session.CurrentUser?.Status}";
+            UserInfoText.Text = $"Роль: {Session.CurrentUser?.Status}";
             NavView.IsSettingsVisible = _context.Options.IsSettingsVisible;
 
             BuildMenu();
@@ -130,6 +130,15 @@ namespace ArtemLibaryTest.QuickStart
             var loginWindow = new ReadyLoginWindow(_context);
             loginWindow.Show();
             Close();
+        }
+
+        private void OpenSupport_Click(object sender, RoutedEventArgs e)
+        {
+            var supportWindow = new TechSupportWindow
+            {
+                Owner = this
+            };
+            supportWindow.ShowDialog();
         }
     }
 }

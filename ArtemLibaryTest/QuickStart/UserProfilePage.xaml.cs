@@ -1,5 +1,6 @@
 ﻿using ArtemLibaryTest.Core;
 using ArtemLibaryTest.Models;
+using Microsoft.Win32;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -37,13 +38,20 @@ namespace ArtemLibaryTest.QuickStart
                 return;
             }
 
-            using var ms = new MemoryStream(user.Img);
+            AvatarImage.Source = CreateBitmapFromBytes(user.Img);
+        }
+
+
+        private static BitmapImage CreateBitmapFromBytes(byte[] imageBytes)
+        {
+            using var ms = new MemoryStream(imageBytes);
             var bitmap = new BitmapImage();
             bitmap.BeginInit();
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
             bitmap.StreamSource = ms;
             bitmap.EndInit();
-            AvatarImage.Source = bitmap;
+            bitmap.Freeze();
+            return bitmap;
         }
 
         private void TopUp_Click(object sender, RoutedEventArgs e)
@@ -68,7 +76,52 @@ namespace ArtemLibaryTest.QuickStart
             Session.CurrentUser.Password = PasswordInput.Password;
             Session.CurrentUser.Phone = PhoneInput.Text.Trim();
 
-            MessageBox.Show("Изменения сохранены в текущей сессии.");
+            var profileUpdated = _context.AuthService.UpdateProfile(
+                Session.CurrentUser.Id,
+                Session.CurrentUser.Login,
+                Session.CurrentUser.Password,
+                Session.CurrentUser.Phone);
+
+            if (!profileUpdated)
+            {
+                MessageBox.Show("Не удалось сохранить изменения в базе данных.");
+                return;
+            }
+
+            MessageBox.Show("Изменения сохранены в базе данных.");
         }
+
+        private void ChangeAvatar_Click(object sender, RoutedEventArgs e)
+        {
+            if (Session.CurrentUser == null)
+            {
+                MessageBox.Show("Пользователь не найден.");
+                return;
+            }
+
+            var dialog = new OpenFileDialog
+            {
+                Title = "Выберите изображение",
+                Filter = "Изображения (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp"
+            };
+
+            if (dialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            var imageBytes = File.ReadAllBytes(dialog.FileName);
+            var avatarUpdated = _context.AuthService.UpdateAvatar(Session.CurrentUser.Id, imageBytes);
+            if (!avatarUpdated)
+            {
+                MessageBox.Show("Не удалось обновить аватар в базе данных.");
+                return;
+            }
+
+            Session.CurrentUser.Img = imageBytes;
+            AvatarImage.Source = CreateBitmapFromBytes(imageBytes);
+            MessageBox.Show("Аватар обновлён в базе данных.");
+        }
+
     }
 }

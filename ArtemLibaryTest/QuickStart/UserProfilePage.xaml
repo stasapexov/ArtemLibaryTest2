@@ -27,6 +27,10 @@
                            RenderOptions.BitmapScalingMode="HighQuality"/>
                 </Border>
 
+                <Button Content="Сменить аватар"
+                        HorizontalAlignment="Stretch"
+                        Click="ChangeAvatar_Click"/>
+
                 <TextBlock x:Name="NameText"
                            Text="Имя Пользователя"
                            FontSize="22"
