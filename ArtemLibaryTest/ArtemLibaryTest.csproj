@@ -1,16 +1,33 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
 	<PropertyGroup>
 		<TargetFramework>net8.0-windows</TargetFramework>
 		<UseWPF>true</UseWPF>
+		<EnableDefaultPageItems>true</EnableDefaultPageItems>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<Title>TestLibrary2</Title>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Version>1.0.7</Version>
+		<Version>1.2.7</Version>
+		<Description>//App.xaml.cs
+public static class DbConfig
+{
+    public const string ConnectionString =
+        "server=localhost;database=demo;user=root;password=;";
+}</Description>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="MySql.Data" Version="9.6.0" />
+	  <Compile Remove="QuickStart\**" />
+	  <EmbeddedResource Remove="QuickStart\**" />
+	  <None Remove="QuickStart\**" />
+	  <Page Remove="QuickStart\**" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="readme.txt" Pack="true" PackagePath="." />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="ModernWpfUI" Version="0.9.6" />
+		<PackageReference Include="MySql.Data" Version="9.2.0" />
 	</ItemGroup>
 </Project>

@@ -1,0 +1,123 @@
+﻿<Page x:Class="ArtemLibaryTest.QuickStart.UserProfilePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.modernwpf.com/2019"
+      Title="UserProfilePage">
+    <Grid Margin="24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="260"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="0"
+        Background="White"
+        CornerRadius="12"
+        Padding="16"
+        Margin="0,0,24,0"
+        BorderBrush="#E5E5E5"
+        BorderThickness="1">
+
+            <!-- ScrollViewer позволяет прокручивать контент при сжатии окна по вертикали -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ui:SimpleStackPanel Spacing="16" VerticalAlignment="Stretch">
+                    <Border CornerRadius="8"
+                    ClipToBounds="True"
+                    Height="220"
+                    Background="#F3F3F3">
+                        <Image x:Name="AvatarImage"
+                       Stretch="UniformToFill"
+                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                    </Border>
+                    <Button Content="Сменить аватар"
+                        HorizontalAlignment="Stretch"
+                        Click="ChangeAvatar_Click" Width="120" Height="35" Background="Yellow" ui:ControlHelper.CornerRadius="8" />
+
+
+                    <TextBlock x:Name="NameText"
+                       Text="Имя Пользователя"
+                       FontSize="22"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"/>
+
+                    <Border Background="#F9F9F9" CornerRadius="8" Padding="12">
+                        <ui:SimpleStackPanel Spacing="8">
+                            <TextBlock Text="Текущий баланс:" FontSize="12" Foreground="#666"/>
+                            <TextBlock x:Name="MoneyText" Text="0.00 ₽" FontSize="20" FontWeight="SemiBold" Foreground="#107C41"/>
+                            <Button Content="Пополнить баланс"
+                            HorizontalAlignment="Stretch"
+                            ui:ControlHelper.CornerRadius="8"
+                            Background="#FF0DAF0D"
+                            Foreground="White"
+                            Height="35"
+                            Margin="0,4,0,0"
+                            Click="TopUp_Click"/>
+                        </ui:SimpleStackPanel>
+                    </Border>
+                </ui:SimpleStackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <Border Grid.Column="1"
+                Background="White"
+                CornerRadius="12"
+                Padding="24"
+                BorderBrush="#E5E5E5"
+                BorderThickness="1">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Text="Персональная информация"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,16"/>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ui:SimpleStackPanel Spacing="12" Margin="0,0,8,0">
+
+                        <TextBox x:Name="LoginInput"
+                                 ui:ControlHelper.Header="Логин"
+                                 ui:ControlHelper.PlaceholderText="Введите логин"
+                                 ui:ControlHelper.CornerRadius="8"
+                                 FontSize="14"/>
+
+                        <PasswordBox x:Name="PasswordInput"
+                                     ui:ControlHelper.Header="Пароль"
+                                     ui:ControlHelper.CornerRadius="8"
+                                     FontSize="14"/>
+
+                        <TextBox x:Name="EmailInput"
+                                 ui:ControlHelper.Header="Электронная почта"
+                                 ui:ControlHelper.PlaceholderText="example@domain.com"
+                                 ui:ControlHelper.CornerRadius="8"
+                                 FontSize="14"/>
+
+                        <TextBox x:Name="PhoneInput"
+                                 ui:ControlHelper.Header="Номер телефона"
+                                 ui:ControlHelper.CornerRadius="8"
+                                 ui:ControlHelper.PlaceholderText="+7 (___) ___-__-__"
+                                 FontSize="14"/>
+
+                    </ui:SimpleStackPanel>
+                </ScrollViewer>
+
+                <Button Grid.Row="2"
+                        Content="Сохранить изменения"
+                        Height="35"
+                        HorizontalAlignment="Right"
+                        Width="200"
+                        Margin="0,16,0,0"
+                        ui:ControlHelper.CornerRadius="8"
+                        Background="#FF0088FF"
+                        Foreground="White"
+                        Click="SaveProfile_Click"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

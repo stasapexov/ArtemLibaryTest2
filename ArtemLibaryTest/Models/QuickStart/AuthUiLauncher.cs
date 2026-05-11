@@ -1,5 +1,7 @@
 ﻿using ArtemLibaryTest.Core;
+using ArtemLibaryTest.Models.QuickStart;
 using System.Windows;
+using System.Xml.Linq;
 
 namespace ArtemLibaryTest.QuickStart
 {
@@ -7,7 +9,11 @@ namespace ArtemLibaryTest.QuickStart
     {
         public static Window CreateLoginWindow(IAuthService authService, AuthUiOptions? options = null)
         {
-            var context = new AuthUiContext(authService, options ?? new AuthUiOptions());
+            var resolvedOptions = options ?? new AuthUiOptions();
+            
+
+            var context = new AuthUiContext(authService, resolvedOptions);
+            resolvedOptions.MenuProvider ??= new DefaultMenuProvider(resolvedOptions, context);
             return new ReadyLoginWindow(context);
         }
     }

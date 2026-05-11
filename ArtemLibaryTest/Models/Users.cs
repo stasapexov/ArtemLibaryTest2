@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ArtemLibaryTest.Models
+﻿namespace ArtemLibaryTest.Models
 {
     public class Users
     {
@@ -14,8 +8,10 @@ namespace ArtemLibaryTest.Models
         public string Login { get; set; }
         public string Phone { get; set; }
         public string Status { get; set; }
+        public double Money { get; set; }
+        public byte[] Img { get; set; }
 
-        public Users(int id, string name, string password, string login, string phone, string status)
+        public Users(int id, string name, string password, string login, string phone, string status, double money, byte[]? img)
         {
             Id = id;
             Name = name;
@@ -23,6 +19,8 @@ namespace ArtemLibaryTest.Models
             Login = login;
             Phone = phone;
             Status = status;
+            Money = money;
+            Img = img ?? [];
         }
     }
 }

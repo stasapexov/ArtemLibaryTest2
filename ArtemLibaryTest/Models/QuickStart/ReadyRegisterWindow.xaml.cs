@@ -1,5 +1,6 @@
 ﻿using ArtemLibaryTest.Models.QuickStart;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace ArtemLibaryTest.QuickStart
 {
@@ -11,7 +12,6 @@ namespace ArtemLibaryTest.QuickStart
         {
             InitializeComponent();
             _context = context;
-            Title = $"{_context.Options.AppTitle} - Регистрация";
         }
 
         private void Register_Click(object sender, RoutedEventArgs e)
@@ -20,7 +20,8 @@ namespace ArtemLibaryTest.QuickStart
                 LoginBox.Text.Trim(),
                 PasswordBox.Password,
                 NameBox.Text.Trim(),
-                PhoneBox.Text.Trim());
+                PhoneBox.Text.Trim(),
+                EmailBox.Text.Trim());
 
             if (!success)
             {
@@ -29,6 +30,11 @@ namespace ArtemLibaryTest.QuickStart
             }
 
             MessageBox.Show("Регистрация успешна");
+            new ReadyLoginWindow(_context).Show();
+            Close();
+        }
+        private void GoToRegister_Click(object sender, RoutedEventArgs e)
+        {
             new ReadyLoginWindow(_context).Show();
             Close();
         }

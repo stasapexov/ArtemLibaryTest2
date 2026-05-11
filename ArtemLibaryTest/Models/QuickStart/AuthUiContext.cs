@@ -2,7 +2,7 @@
 
 namespace ArtemLibaryTest.QuickStart
 {
-    internal sealed class AuthUiContext
+    public sealed class AuthUiContext
     {
         public AuthUiContext(IAuthService authService, AuthUiOptions options)
         {
