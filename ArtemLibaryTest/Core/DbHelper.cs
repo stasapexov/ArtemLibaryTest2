@@ -1,5 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
 using System.Data;
+using System.IO;
 using System.Text;
 
 namespace ArtemLibaryTest.Core

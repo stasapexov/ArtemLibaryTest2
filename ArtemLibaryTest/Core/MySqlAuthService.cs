@@ -146,7 +146,7 @@ VALUES
             _db.ExecuteNonQuery(insertDemoOrdersSql);
         }
 
-        public bool Register(string login, string password, string name, string phone)
+        public bool Register(string login, string password, string name, string phone, string email = "")
         {
             const string checkSql = "SELECT COUNT(*) FROM users WHERE login = @login;";
             var existingUsers = Convert.ToInt32(_db.ExecuteScalar(checkSql, DbHelper.Param("@login", login)));
@@ -173,7 +173,7 @@ VALUES (@name, @password, @login, @phone, @status, @money, @img, @inn, @companyN
                 DbHelper.Param("@inn", 0),
                 DbHelper.Param("@companyName", string.Empty),
                 DbHelper.Param("@orderId", 0),
-                DbHelper.Param("@email", string.Empty)) > 0;
+                DbHelper.Param("@email", email)) > 0;
         }
 
         public bool TopUpUserMoney(int userId, string userPassword, double amount)
