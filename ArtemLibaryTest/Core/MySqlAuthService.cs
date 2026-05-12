@@ -14,10 +14,11 @@ namespace ArtemLibaryTest.Core
 
         public Users? Login(string login, string password)
         {
-            EnsureUsersEmailColumn();
+            var hasEmailColumn = EnsureUsersEmailColumn();
+            var emailSelect = hasEmailColumn ? "email" : "'' AS email";
 
-            const string sql = @"
-SELECT id, name, password, login, phone, email, status, money, img
+            var sql = $@"
+SELECT id, name, password, login, phone, {emailSelect}, status, money, img
 FROM users
 WHERE login = @login AND password = @password
 LIMIT 1;";
@@ -153,7 +154,7 @@ VALUES
 
         public bool Register(string login, string password, string name, string phone, string email = "")
         {
-            EnsureUsersEmailColumn();
+            var hasEmailColumn = EnsureUsersEmailColumn();
 
             const string checkSql = "SELECT COUNT(*) FROM users WHERE login = @login;";
             var existingUsers = Convert.ToInt32(_db.ExecuteScalar(checkSql, DbHelper.Param("@login", login)));
@@ -162,9 +163,13 @@ VALUES
                 return false;
             }
 
-            const string insertSql = @"
+            var insertSql = hasEmailColumn
+                ? @"
 INSERT INTO users (name, password, login, phone, status, money, img, inn, company_name, order_id, email)
-VALUES (@name, @password, @login, @phone, @status, @money, @img, @inn, @companyName, @orderId, @email);";
+VALUES (@name, @password, @login, @phone, @status, @money, @img, @inn, @companyName, @orderId, @email);"
+                : @"
+INSERT INTO users (name, password, login, phone, status, money, img, inn, company_name, order_id)
+VALUES (@name, @password, @login, @phone, @status, @money, @img, @inn, @companyName, @orderId);";
 
             return _db.ExecuteNonQuery(
                 insertSql,
@@ -204,14 +209,14 @@ WHERE id = @id AND password = @password;";
 
         public bool UpdateProfile(int userId, string login, string password, string phone, string email)
         {
-            EnsureUsersEmailColumn();
+            var hasEmailColumn = EnsureUsersEmailColumn();
+            var emailUpdate = hasEmailColumn ? ",\n    email = @email" : string.Empty;
 
-            const string sql = @"
+            var sql = $@"
 UPDATE users
 SET login = @login,
     password = @password,
-    phone = @phone,
-    email = @email
+    phone = @phone{emailUpdate}
 WHERE id = @id;";
 
             return _db.ExecuteNonQuery(
@@ -223,7 +228,7 @@ WHERE id = @id;";
                 DbHelper.Param("@id", userId)) > 0;
         }
 
-        private void EnsureUsersEmailColumn()
+        private bool EnsureUsersEmailColumn()
         {
             const string checkTableSql = @"
 SELECT COUNT(*)
@@ -234,9 +239,20 @@ WHERE TABLE_SCHEMA = DATABASE()
             var usersTableExists = Convert.ToInt32(_db.ExecuteScalar(checkTableSql)) > 0;
             if (!usersTableExists)
             {
-                return;
+                return false;
             }
 
+            if (UsersEmailColumnExists())
+            {
+                return true;
+            }
+
+            _db.ExecuteNonQuery("ALTER TABLE `users` ADD COLUMN `email` varchar(50) NOT NULL DEFAULT '';");
+            return UsersEmailColumnExists();
+        }
+
+        private bool UsersEmailColumnExists()
+        {
             const string checkColumnSql = @"
 SELECT COUNT(*)
 FROM information_schema.COLUMNS
@@ -244,13 +260,7 @@ WHERE TABLE_SCHEMA = DATABASE()
   AND TABLE_NAME = 'users'
   AND COLUMN_NAME = 'email';";
 
-            var emailColumnExists = Convert.ToInt32(_db.ExecuteScalar(checkColumnSql)) > 0;
-            if (emailColumnExists)
-            {
-                return;
-            }
-
-            _db.ExecuteNonQuery("ALTER TABLE `users` ADD COLUMN `email` varchar(50) NOT NULL DEFAULT '';");
+            return Convert.ToInt32(_db.ExecuteScalar(checkColumnSql)) > 0;
         }
 
         private static string GetStringOrEmpty(DataRow row, string columnName)

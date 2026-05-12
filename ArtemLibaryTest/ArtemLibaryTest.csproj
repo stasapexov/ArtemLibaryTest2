@@ -8,7 +8,7 @@
 		<Nullable>enable</Nullable>
 		<Title>TestLibrary2</Title>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Version>1.2.8</Version>
+		<Version>1.2.9</Version>
 		<Description>//App.xaml.cs
 public static class DbConfig
 {
