@@ -11,7 +11,7 @@ namespace ArtemLibaryTest.Core
     {
         Users? Login(string login, string password);
         bool Register(string login, string password, string name, string phone, string email = "");
-        bool UpdateProfile(int userId, string login, string password, string phone,string email);
+        bool UpdateProfile(int userId, string login, string password, string phone, string email);
         bool UpdateAvatar(int userId, byte[] imageBytes);
     }
 }

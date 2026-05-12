@@ -1,4 +1,5 @@
 ﻿using ArtemLibaryTest.Models;
+using System.Data;
 
 namespace ArtemLibaryTest.Core
 {
@@ -13,8 +14,10 @@ namespace ArtemLibaryTest.Core
 
         public Users? Login(string login, string password)
         {
+            EnsureUsersEmailColumn();
+
             const string sql = @"
-SELECT id, name, password, login, phone, status, money, img
+SELECT id, name, password, login, phone, email, status, money, img
 FROM users
 WHERE login = @login AND password = @password
 LIMIT 1;";
@@ -37,6 +40,7 @@ LIMIT 1;";
                 Convert.ToString(row["password"]) ?? string.Empty,
                 Convert.ToString(row["login"]) ?? string.Empty,
                 Convert.ToString(row["phone"]) ?? string.Empty,
+                GetStringOrEmpty(row, "email"),
                 Convert.ToString(row["status"]) ?? string.Empty,
                 row["money"] == DBNull.Value ? 0 : Convert.ToDouble(row["money"]),
                 row["img"] == DBNull.Value ? [] : (byte[])row["img"]);
@@ -72,6 +76,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 ) ENGINE=MyISAM AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
 
             _db.ExecuteNonQuery(createUsersTableSql);
+            EnsureUsersEmailColumn();
 
             const string insertDemoUsersSql = @"
 INSERT INTO users (id, login, password, name, inn, company_name, order_id, status, money, img, phone, email)
@@ -148,6 +153,8 @@ VALUES
 
         public bool Register(string login, string password, string name, string phone, string email = "")
         {
+            EnsureUsersEmailColumn();
+
             const string checkSql = "SELECT COUNT(*) FROM users WHERE login = @login;";
             var existingUsers = Convert.ToInt32(_db.ExecuteScalar(checkSql, DbHelper.Param("@login", login)));
             if (existingUsers > 0)
@@ -195,13 +202,16 @@ WHERE id = @id AND password = @password;";
                 DbHelper.Param("@password", userPassword)) > 0;
         }
 
-        public bool UpdateProfile(int userId, string login, string password, string phone)
+        public bool UpdateProfile(int userId, string login, string password, string phone, string email)
         {
+            EnsureUsersEmailColumn();
+
             const string sql = @"
 UPDATE users
 SET login = @login,
     password = @password,
-    phone = @phone
+    phone = @phone,
+    email = @email
 WHERE id = @id;";
 
             return _db.ExecuteNonQuery(
@@ -209,7 +219,48 @@ WHERE id = @id;";
                 DbHelper.Param("@login", login),
                 DbHelper.Param("@password", password),
                 DbHelper.Param("@phone", phone),
+                DbHelper.Param("@email", email),
                 DbHelper.Param("@id", userId)) > 0;
+        }
+
+        private void EnsureUsersEmailColumn()
+        {
+            const string checkTableSql = @"
+SELECT COUNT(*)
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE()
+  AND TABLE_NAME = 'users';";
+
+            var usersTableExists = Convert.ToInt32(_db.ExecuteScalar(checkTableSql)) > 0;
+            if (!usersTableExists)
+            {
+                return;
+            }
+
+            const string checkColumnSql = @"
+SELECT COUNT(*)
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE()
+  AND TABLE_NAME = 'users'
+  AND COLUMN_NAME = 'email';";
+
+            var emailColumnExists = Convert.ToInt32(_db.ExecuteScalar(checkColumnSql)) > 0;
+            if (emailColumnExists)
+            {
+                return;
+            }
+
+            _db.ExecuteNonQuery("ALTER TABLE `users` ADD COLUMN `email` varchar(50) NOT NULL DEFAULT '';");
+        }
+
+        private static string GetStringOrEmpty(DataRow row, string columnName)
+        {
+            if (!row.Table.Columns.Contains(columnName) || row[columnName] == DBNull.Value)
+            {
+                return string.Empty;
+            }
+
+            return Convert.ToString(row[columnName]) ?? string.Empty;
         }
 
         public bool UpdateAvatar(int userId, byte[] imageBytes)
