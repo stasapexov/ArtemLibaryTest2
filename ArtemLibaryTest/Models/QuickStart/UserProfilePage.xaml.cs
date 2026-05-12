@@ -30,7 +30,7 @@ namespace ArtemLibaryTest.QuickStart
             LoginInput.Text = user.Login;
             PasswordInput.Password = user.Password;
             PhoneInput.Text = user.Phone;
-            EmailInput.Text = string.Empty;
+            EmailInput.Text = user.Email;
             MoneyText.Text = $"{user.Money:0.00} ₽";
 
             if (user.Img.Length == 0)
@@ -75,7 +75,7 @@ namespace ArtemLibaryTest.QuickStart
             Session.CurrentUser.Login = LoginInput.Text.Trim();
             Session.CurrentUser.Password = PasswordInput.Password;
             Session.CurrentUser.Phone = PhoneInput.Text.Trim();
-            Session.CurrentUser.Phone = EmailInput.Text.Trim();
+            Session.CurrentUser.Email = EmailInput.Text.Trim();
 
             var profileUpdated = _context.AuthService.UpdateProfile(
                 Session.CurrentUser.Id,
