@@ -25,6 +25,7 @@ public static class DbConfig
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="readme.txt" Pack="true" PackagePath="." />
+		<None Include="DbHelper\readme.txt" Pack="true" PackagePath="DbHelper/" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="ModernWpfUI" Version="0.9.6" />
