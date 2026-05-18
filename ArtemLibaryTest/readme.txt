@@ -42,7 +42,7 @@ public class AppMenuProvider : IMenuProvider
 public static class DbConfig
     {
         // Подставь свои значения из phpMyAdmin/MySQL
-        public const string ConnectionString = "server=localhost;database=demo;user=root;password=;";
+        public const string ConnectionString = "Server=127.0.0.1;Port=3306;Database=stroy;Uid=root;Pwd=;Protocol=Tcp;AllowZeroDateTime=true";
     }
 
 
@@ -72,3 +72,38 @@ protected override void OnStartup(StartupEventArgs e)
 Server=127.0.0.1;Port=3306;Database=exam_demo;Uid=root;Pwd=;SslMode=None;Protocol=Tcp;
 Вариант Б (если MySQL 8 ругается на auth key):
 Server=127.0.0.1;Port=3306;Database=exam_demo;Uid=root;Pwd=;SslMode=None;Protocol=Tcp;AllowPublicKeyRetrieval=True;
+## Вывод аватарок пользователей из BLOB
+
+Для админской страницы можно получить таблицу пользователей сразу с готовой колонкой для `Image.Source`:
+
+```csharp
+using ArtemLibaryTest.Core;
+
+var db = new DbHelper(DbConfig.ConnectionString);
+
+UsersGrid.ItemsSource = db.GetTableWithBlobImage(@"
+    SELECT id, name, login, phone, email, status, money, img
+    FROM users
+    ORDER BY id;").DefaultView;
+```
+
+Пример колонки в `DataGrid`:
+
+```xml
+<DataGridTemplateColumn Header="Аватар">
+    <DataGridTemplateColumn.CellTemplate>
+        <DataTemplate>
+            <Image Source="{Binding ImgSource}" Width="48" Height="48" Stretch="UniformToFill" />
+        </DataTemplate>
+    </DataGridTemplateColumn.CellTemplate>
+</DataGridTemplateColumn>
+```
+
+По умолчанию метод берет BLOB из колонки `img` и добавляет новую колонку `ImgSource` типа `BitmapImage`. Если в вашей таблице другие названия колонок, используйте перегрузку:
+
+```csharp
+UsersGrid.ItemsSource = db.GetTableWithBlobImage(
+    "SELECT id, name, avatar_blob FROM users",
+    "avatar_blob",
+    "AvatarImage").DefaultView;
+```

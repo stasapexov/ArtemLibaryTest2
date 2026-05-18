@@ -8,13 +8,8 @@
 		<Nullable>enable</Nullable>
 		<Title>TestLibrary2</Title>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Version>1.2.8</Version>
-		<Description>//App.xaml.cs
-public static class DbConfig
-{
-    public const string ConnectionString =
-        "server=localhost;database=demo;user=root;password=;";
-}</Description>
+		<Version>1.3.2</Version>
+		<Description>Библиотека для Демо Экзамена C#/Wpf/ModernWpfUi/MySql</Description>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -25,9 +20,13 @@ public static class DbConfig
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="readme.txt" Pack="true" PackagePath="." />
+		<None Include="DbHelper\readme.txt" Pack="true" PackagePath="DbHelper/" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="ModernWpfUI" Version="0.9.6" />
 		<PackageReference Include="MySql.Data" Version="9.2.0" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Dbhelper\" />
 	</ItemGroup>
 </Project>

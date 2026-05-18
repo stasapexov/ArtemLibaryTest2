@@ -2,6 +2,9 @@
 using System.Data;
 using System.IO;
 using System.Text;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+
 
 namespace ArtemLibaryTest.Core
 {
@@ -62,6 +65,23 @@ namespace ArtemLibaryTest.Core
 
             return table;
         }
+        public DataTable GetTableWithBlobImage(string sql, params MySqlParameter[] parameters)
+        {
+            return GetTableWithBlobImage(sql, "img", "ImgSource", parameters);
+        }
+
+        public DataTable GetTableWithBlobImage(
+            string sql,
+            string blobColumn,
+            string imageSourceColumn,
+            params MySqlParameter[] parameters)
+        {
+            var table = GetTable(sql, parameters);
+            AddBlobImageColumn(table, blobColumn, imageSourceColumn);
+
+            return table;
+        }
+
 
         public static MySqlParameter Param(string name, object? value)
         {
@@ -111,6 +131,39 @@ namespace ArtemLibaryTest.Core
             sql.Append($" AND {column} LIKE {parameterName}");
             parameters.Add(Param(parameterName, $"%{value.Trim()}%"));
         }
+        public static void AddWhereLikeAnyWord(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+
+            var words = value
+                .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            if (words.Length == 0)
+            {
+                return;
+            }
+
+            sql.Append(" AND (");
+
+            for (var i = 0; i < words.Length; i++)
+            {
+                if (i > 0)
+                {
+                    sql.Append(" OR ");
+                }
+
+                var wordParameterName = $"{parameterName}{i}";
+                sql.Append($"{column} LIKE {wordParameterName}");
+                parameters.Add(Param(wordParameterName, $"%{words[i]}%"));
+            }
+
+            sql.Append(')');
+        }
 
         public static void AddImagePathColumn(
             DataTable table,
@@ -131,6 +184,88 @@ namespace ArtemLibaryTest.Core
                 var fileName = row[photoColumn]?.ToString();
                 row[imagePathColumn] = Path.Combine(imagesRoot, string.IsNullOrWhiteSpace(fileName) ? "default.png" : fileName);
             }
+        }
+        public static void AddBlobImageColumn(
+            DataTable table,
+            string blobColumn = "img",
+            string imageSourceColumn = "ImgSource")
+        {
+            if (!table.Columns.Contains(blobColumn) || table.Columns.Contains(imageSourceColumn))
+            {
+                return;
+            }
+
+            table.Columns.Add(imageSourceColumn, typeof(ImageSource));
+
+            foreach (DataRow row in table.Rows)
+            {
+                row[imageSourceColumn] = (object?)TryCreateImageSource(row[blobColumn]) ?? DBNull.Value;
+            }
+        }
+
+        private static ImageSource? TryCreateImageSource(object? blobValue)
+        {
+            try
+            {
+                var imageBytes = GetBlobBytes(blobValue);
+                if (imageBytes.Length == 0)
+                {
+                    return null;
+                }
+
+                using var stream = new MemoryStream(imageBytes);
+                var bitmap = BitmapFrame.Create(
+                    stream,
+                    BitmapCreateOptions.PreservePixelFormat,
+                    BitmapCacheOption.OnLoad);
+                bitmap.Freeze();
+
+                return bitmap;
+            }
+            catch (NotSupportedException)
+            {
+                return null;
+            }
+            catch (FileFormatException)
+            {
+                return null;
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
+            catch (IOException)
+            {
+                return null;
+            }
+            catch (FormatException)
+            {
+                return null;
+            }
+        }
+
+        private static byte[] GetBlobBytes(object? blobValue)
+        {
+            return blobValue switch
+            {
+                byte[] bytes => bytes,
+                Stream stream => ReadAllBytes(stream),
+                string base64 when !string.IsNullOrWhiteSpace(base64) => Convert.FromBase64String(base64),
+                _ => []
+            };
+        }
+
+        private static byte[] ReadAllBytes(Stream stream)
+        {
+            if (stream.CanSeek)
+            {
+                stream.Position = 0;
+            }
+
+            using var memoryStream = new MemoryStream();
+            stream.CopyTo(memoryStream);
+
+            return memoryStream.ToArray();
         }
 
         private static MySqlCommand CreateCommand(MySqlConnection connection, string sql, params MySqlParameter[] parameters)
