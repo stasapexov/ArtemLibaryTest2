@@ -18,24 +18,27 @@ SELECT
   p.photo AS Img
 FROM products p
 LEFT JOIN categories c ON c.id = p.category_id
-WHERE 1=1;
+WHERE 1=1
 ```
 
-Also fix the multi-statement order SQL:
+> Avoid ending dynamic SQL templates with `;` when you append filters later.
 
-- add missing semicolons
-- `LAST_INSERT_ID()` should be used directly or assigned with `SET`
+## Fix for `@currentOrderId must be defined`
 
-Correct version:
+When using `MySqlCommand` with parameters, `@currentOrderId` is parsed as a command parameter (not a SQL user variable) unless the connection string explicitly enables user variables. That is why you get:
+
+`Parameter '@currentOrderId' must be defined`.
+
+### Safer fix (recommended): do not use SQL user variable
+
+Use `LAST_INSERT_ID()` directly in the second insert:
 
 ```sql
 INSERT INTO orders (date, user_id, total_price)
 VALUES (NOW(), @user_id, @totalPrice);
 
-SET @currentOrderId = LAST_INSERT_ID();
-
 INSERT INTO order_items (order_id, product_id, quantity, unit_price)
-VALUES (@currentOrderId, @product_id, @count, @price);
+VALUES (LAST_INSERT_ID(), @product_id, @count, @price);
 
 UPDATE products
 SET quantity = quantity - @count
@@ -45,5 +48,9 @@ UPDATE users
 SET money = money - @totalPrice
 WHERE id = @user_id;
 ```
+
+### Alternative
+
+If you intentionally use SQL user variables (`@currentOrderId`), add `Allow User Variables=true` to the MySQL connection string.
 
 And in `AddWhereLikeAnyWord`, filter by actual table column (`p.name`) instead of alias (`material_name`) in `WHERE`.
