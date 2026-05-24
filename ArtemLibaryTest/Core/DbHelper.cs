@@ -95,6 +95,7 @@ namespace ArtemLibaryTest.Core
                 return;
             }
 
+            EnsureCanAppendConditions(sql);
             sql.Append($" AND {column} = {parameterName}");
             parameters.Add(Param(parameterName, selectedValue));
         }
@@ -118,6 +119,7 @@ namespace ArtemLibaryTest.Core
                 return;
             }
 
+            EnsureCanAppendConditions(sql);
             sql.Append($" AND {column} = {parameterName}");
             parameters.Add(Param(parameterName, value));
         }
@@ -129,6 +131,7 @@ namespace ArtemLibaryTest.Core
                 return;
             }
 
+            EnsureCanAppendConditions(sql);
             sql.Append($" AND {column} >= {parameterName}");
             parameters.Add(Param(parameterName, value.Value));
         }
@@ -140,6 +143,7 @@ namespace ArtemLibaryTest.Core
                 return;
             }
 
+            EnsureCanAppendConditions(sql);
             sql.Append($" AND {column} <= {parameterName}");
             parameters.Add(Param(parameterName, value.Value));
         }
@@ -151,6 +155,7 @@ namespace ArtemLibaryTest.Core
                 return;
             }
 
+            EnsureCanAppendConditions(sql);
             sql.Append($" AND {column} LIKE {parameterName}");
             parameters.Add(Param(parameterName, $"%{value.Trim()}%"));
         }
@@ -171,6 +176,7 @@ namespace ArtemLibaryTest.Core
                 return;
             }
 
+            EnsureCanAppendConditions(sql);
             sql.Append(" AND (");
 
             for (var i = 0; i < words.Length; i++)
@@ -186,6 +192,19 @@ namespace ArtemLibaryTest.Core
             }
 
             sql.Append(')');
+        }
+
+        private static void EnsureCanAppendConditions(StringBuilder sql)
+        {
+            while (sql.Length > 0 && char.IsWhiteSpace(sql[^1]))
+            {
+                sql.Length--;
+            }
+
+            if (sql.Length > 0 && sql[^1] == ';')
+            {
+                sql.Length--;
+            }
         }
 
         public static void AddImagePathColumn(
