@@ -32,6 +32,22 @@ namespace ArtemLibaryTest.QuickStart
                     Icon = "Contact",
                     Roles = ["admin", "manager", "user"],
                     CreatePage = () => new UserProfilePage(_context)
+                },
+                new NavMenuItem
+                {
+                    Title = "Заказ товаров",
+                    Tag = "ProductsOrder",
+                    Icon = "Shop",
+                    Roles = ["admin", "manager", "user"],
+                    CreatePage = () => new ProductsOrderPage(_context)
+                },
+                new NavMenuItem
+                {
+                    Title = "Мои заказы",
+                    Tag = "MyOrders",
+                    Icon = "AllApps",
+                    Roles = ["admin", "manager", "user"],
+                    CreatePage = () => new MyOrdersPage(_context)
                 }
             ];
         }
