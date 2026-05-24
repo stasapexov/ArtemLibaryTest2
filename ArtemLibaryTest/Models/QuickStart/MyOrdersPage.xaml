@@ -1,8 +1,0 @@
-<Page x:Class="ArtemLibaryTest.QuickStart.MyOrdersPage"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="Мои заказы">
-    <Grid Margin="16">
-        <DataGrid x:Name="OrdersGrid" AutoGenerateColumns="True" IsReadOnly="True"/>
-    </Grid>
-</Page>

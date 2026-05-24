@@ -1,0 +1,23 @@
+<Page x:Class="SampleWpf.MyOrdersPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.modernwpf.com/2019" Title="MyOrdersPage">
+    <Grid Margin="12">
+        <ui:ScrollViewerEx>
+            <ItemsControl x:Name="OrdersItems">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Width="240" Background="White" CornerRadius="12" Margin="10" Padding="8">
+                            <StackPanel>
+                                <TextBlock Text="{Binding order_id,StringFormat=Заказ №{0}}" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding material_name,StringFormat=Товар: {0}}" Margin="0,4,0,0"/>
+                                <TextBlock Text="{Binding quantity,StringFormat=Кол-во: {0}}"/>
+                                <TextBlock Text="{Binding unit_price,StringFormat=Цена: {0}}"/>
+                                <TextBlock Text="{Binding total_price,StringFormat=Сумма: {0}}"/>
+                                <TextBlock Text="{Binding readiness,StringFormat=Статус: {0}}"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ui:ScrollViewerEx>
+    </Grid>
+</Page>

@@ -1,12 +1,16 @@
-﻿<Window x:Class="SampleWpf.MainWindow"
+<Window x:Class="SampleWpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SampleWpf"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
+        xmlns:ui="http://schemas.modernwpf.com/2019"
+        Title="SampleWpf - Магазин" Height="700" Width="1100">
+    <Grid Background="#FFF3F5F8">
+        <TabControl Margin="12">
+            <TabItem Header="Каталог и заказ">
+                <Frame x:Name="CatalogFrame" NavigationUIVisibility="Hidden"/>
+            </TabItem>
+            <TabItem Header="Мои заказы">
+                <Frame x:Name="OrdersFrame" NavigationUIVisibility="Hidden"/>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>

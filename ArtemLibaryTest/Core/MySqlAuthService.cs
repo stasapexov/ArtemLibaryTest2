@@ -1,8 +1,5 @@
 ﻿using ArtemLibaryTest.Models;
-using MySql.Data.MySqlClient;
-using System.Collections.Generic;
 using System.Data;
-using System.Text;
 
 namespace ArtemLibaryTest.Core
 {
@@ -442,99 +439,5 @@ WHERE id = @id;";
                 DbHelper.Param("@id", userId)) > 0;
         }
 
-        public DataTable GetStoreProducts(string? name, decimal? minPrice, decimal? maxPrice, int? categoryId)
-        {
-            var sql = @"
-SELECT p.id, p.name, c.name AS category, p.quantity, p.price, p.photo
-FROM products p
-LEFT JOIN categories c ON c.id = p.category_id
-WHERE 1=1";
-
-            var parameters = new List<MySqlParameter>();
-            var builder = new StringBuilder(sql);
-            DbHelper.AddWhereLike(builder, parameters, "p.name", "@name", name);
-            DbHelper.AddWhereMin(builder, parameters, "p.price", "@minPrice", minPrice.HasValue ? Convert.ToDouble(minPrice.Value) : null);
-            DbHelper.AddWhereMax(builder, parameters, "p.price", "@maxPrice", maxPrice.HasValue ? Convert.ToDouble(maxPrice.Value) : null);
-            if (categoryId.HasValue)
-            {
-                builder.Append(" AND p.category_id = @categoryId");
-                parameters.Add(DbHelper.Param("@categoryId", categoryId.Value));
-            }
-
-            builder.Append(" ORDER BY p.name;");
-            return _db.GetTable(builder.ToString(), parameters.ToArray());
-        }
-
-        public DataTable GetCategories()
-        {
-            return _db.GetTable("SELECT id, name FROM categories ORDER BY name;");
-        }
-
-        public bool CreateOrder(int userId, int productId, decimal quantity)
-        {
-            if (quantity <= 0)
-            {
-                return false;
-            }
-
-            const string getProductSql = @"
-SELECT id, price, quantity
-FROM products
-WHERE id = @productId
-LIMIT 1;";
-
-            var product = _db.GetTable(getProductSql, DbHelper.Param("@productId", productId));
-            if (product.Rows.Count == 0)
-            {
-                return false;
-            }
-
-            var available = Convert.ToDecimal(product.Rows[0]["quantity"]);
-            if (available < quantity)
-            {
-                return false;
-            }
-
-            var price = Convert.ToDecimal(product.Rows[0]["price"]);
-            var totalPrice = price * quantity;
-
-            const string insertOrderSql = @"
-INSERT INTO orders (`date`, user_id, total_price, readiness)
-VALUES (CURDATE(), @userId, @totalPrice, 'не готов');";
-            _db.ExecuteNonQuery(insertOrderSql, DbHelper.Param("@userId", userId), DbHelper.Param("@totalPrice", totalPrice));
-
-            var orderId = Convert.ToInt32(_db.ExecuteScalar("SELECT LAST_INSERT_ID();"));
-
-            const string insertItemSql = @"
-INSERT INTO order_items (order_id, product_id, quantity, unit_price)
-VALUES (@orderId, @productId, @quantity, @unitPrice);";
-            _db.ExecuteNonQuery(
-                insertItemSql,
-                DbHelper.Param("@orderId", orderId),
-                DbHelper.Param("@productId", productId),
-                DbHelper.Param("@quantity", quantity),
-                DbHelper.Param("@unitPrice", price));
-
-            const string decreaseSql = @"
-UPDATE products
-SET quantity = quantity - @quantity
-WHERE id = @productId;";
-            _db.ExecuteNonQuery(decreaseSql, DbHelper.Param("@quantity", quantity), DbHelper.Param("@productId", productId));
-
-            return true;
-        }
-
-        public DataTable GetMyOrders(int userId)
-        {
-            const string sql = @"
-SELECT o.id, o.date, o.total_price, o.readiness,
-       p.name AS product_name, oi.quantity, oi.unit_price
-FROM orders o
-JOIN order_items oi ON oi.order_id = o.id
-JOIN products p ON p.id = oi.product_id
-WHERE o.user_id = @userId
-ORDER BY o.id DESC;";
-            return _db.GetTable(sql, DbHelper.Param("@userId", userId));
-        }
     }
 }
