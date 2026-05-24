@@ -8,7 +8,7 @@
 		<Nullable>enable</Nullable>
 		<Title>TestLibrary2</Title>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Version>1.3.2</Version>
+		<Version>1.3.5</Version>
 		<Description>Библиотека для Демо Экзамена C#/Wpf/ModernWpfUi/MySql</Description>
 	</PropertyGroup>
 

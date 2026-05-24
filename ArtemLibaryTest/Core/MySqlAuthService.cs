@@ -51,9 +51,16 @@ LIMIT 1;";
 
         public void ResetDemoDatabase()
         {
+            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `order_items`;");
+            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `payments`;");
+            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `addresses`;");
+            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `categories`;");
+            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `orders`;");
+            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `products`;");
+            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `users`;");
+
             ResetDemoUsers();
-            ResetDemoProducts();
-            ResetDemoOrders();
+            ResetDemoStoreTables();
         }
 
         public void ResetDemoUsers()
@@ -65,29 +72,25 @@ CREATE TABLE IF NOT EXISTS `users` (
   `id` int NOT NULL AUTO_INCREMENT,
   `login` varchar(25) NOT NULL,
   `password` varchar(25) NOT NULL,
-  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `inn` int NOT NULL,
-  `company_name` varchar(50) NOT NULL,
-  `order_id` int NOT NULL,
+  `name` varchar(50) NOT NULL,
   `status` varchar(50) NOT NULL,
-  `money` decimal(50,0) NOT NULL,
+  `money` decimal(12,2) NOT NULL DEFAULT 0,
   `img` mediumblob NOT NULL,
   `phone` varchar(25) NOT NULL,
   `email` varchar(50) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `order_id` (`order_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+  UNIQUE KEY `ux_users_login` (`login`)
+) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
 
             _db.ExecuteNonQuery(createUsersTableSql);
-            EnsureUsersEmailColumn();
 
             const string insertDemoUsersSql = @"
-INSERT INTO users (id, login, password, name, inn, company_name, order_id, status, money, img, phone, email)
+INSERT INTO users (id, login, password, name, status, money, img, phone, email)
 VALUES
-    (1, 'artem', '12345', 'Artem', 2147483647, 'Компания', 0, 'admin', 50000, @img, '+719321833', 'letsg527@gmail.com'),
-    (49, '1', '1', 'Artem', 2147483647, 'Компания', 0, 'admin', 50000, @img, '+719321833', 'letsg527@gmail.com'),
-    (50, '2', '2', 'Artem', 2147483647, 'Компания', 0, 'manager', 50000, @img, '+719321833', 'letsg527@gmail.com'),
-    (51, '3', '3', 'Artem', 2147483647, 'Компания', 0, 'user', 50000, @img, '+719321833', 'letsg527@gmail.com');";
+    (1, 'artem', '12345', 'Artem', 'admin', 50000, @img, '+719321833', 'letsg527@gmail.com'),
+    (49, '1', '1', 'Artem', 'admin', 50000, @img, '+719321833', 'letsg527@gmail.com'),
+    (50, '2', '2', 'Artem', 'manager', 50000, @img, '+719321833', 'letsg527@gmail.com'),
+    (51, '3', '3', 'Artem', 'user', 50000, @img, '+719321833', 'letsg527@gmail.com');";
 
             _db.ExecuteNonQuery(insertDemoUsersSql, DbHelper.Param("@img", Array.Empty<byte>()));
         }
@@ -99,23 +102,25 @@ VALUES
             const string createProductsTableSql = @"
 CREATE TABLE IF NOT EXISTS `products` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `material_name` varchar(50) NOT NULL,
-  `company_name` varchar(50) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `category_id` int NULL,
   `quantity` decimal(25,0) NOT NULL,
-  `price` decimal(10,0) NOT NULL,
-  `photo` varchar(25) NOT NULL DEFAULT 'default.png',
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+  `price` decimal(10,2) NOT NULL,
+  `photo` varchar(100) NOT NULL DEFAULT 'default.png',
+  PRIMARY KEY (`id`),
+  KEY `idx_products_category_id` (`category_id`),
+  CONSTRAINT `fk_products_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
 
             _db.ExecuteNonQuery(createProductsTableSql);
 
             const string insertDemoProductsSql = @"
-INSERT INTO products (id, material_name, company_name, quantity, price, photo)
+INSERT INTO products (id, name, category_id, quantity, price, photo)
 VALUES
-    (1, 'Кирпич', 'Компания', 100, 50, 'default.png'),
-    (2, 'Цемент', 'Компания', 40, 350, 'default.png'),
-    (3, 'Песок', 'Компания', 200, 120, 'default.png'),
-    (4, 'Доска', 'Компания', 75, 500, 'default.png');";
+    (1, 'Кирпич', 1, 100, 50, 'default.png'),
+    (2, 'Цемент', 1, 40, 350, 'default.png'),
+    (3, 'Песок', 2, 200, 120, 'default.png'),
+    (4, 'Доска', 3, 75, 500, 'default.png');";
 
             _db.ExecuteNonQuery(insertDemoProductsSql);
         }
@@ -127,31 +132,146 @@ VALUES
             const string createOrdersTableSql = @"
 CREATE TABLE IF NOT EXISTS `orders` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `material_name` varchar(50) NOT NULL,
-  `company_name` varchar(50) NOT NULL,
   `date` date NOT NULL,
   `user_id` int NOT NULL,
-  `user_name` varchar(50) NOT NULL,
-  `quantity` decimal(25,0) NOT NULL,
-  `material_id` int NOT NULL,
-  `price` decimal(10,0) NOT NULL,
-  `photo` varchar(25) NOT NULL DEFAULT 'default.png',
+  `total_price` decimal(10,2) NOT NULL,
   `readiness` varchar(10) NOT NULL DEFAULT 'не готов',
   PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  KEY `material_id` (`material_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+  KEY `idx_orders_user_id` (`user_id`),
+  CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
 
             _db.ExecuteNonQuery(createOrdersTableSql);
 
             const string insertDemoOrdersSql = @"
-INSERT INTO orders (id, material_name, company_name, date, user_id, user_name, quantity, material_id, price, photo, readiness)
+INSERT INTO orders (id, date, user_id, total_price, readiness)
 VALUES
-    (1, 'Кирпич', 'Компания', '2026-05-11', 49, 'Artem', 10, 1, 500, 'default.png', 'готов'),
-    (2, 'Цемент', 'Компания', '2026-05-11', 50, 'Artem', 5, 2, 1750, 'default.png', 'не готов'),
-    (3, 'Песок', 'Компания', '2026-05-11', 51, 'Artem', 20, 3, 2400, 'default.png', 'не готов');";
+    (1, '2026-05-11', 49, 500, 'готов'),
+    (2, '2026-05-11', 50, 1750, 'не готов'),
+    (3, '2026-05-11', 51, 2400, 'не готов');";
 
             _db.ExecuteNonQuery(insertDemoOrdersSql);
+        }
+
+        public void ResetDemoStoreTables()
+        {
+            const string createCategoriesSql = @"
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ux_categories_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+            const string insertCategoriesSql = @"
+INSERT INTO categories (id, name)
+VALUES (1, 'Строительные смеси'), (2, 'Сыпучие материалы'), (3, 'Пиломатериалы');";
+
+            const string createOrderItemsSql = @"
+CREATE TABLE IF NOT EXISTS `order_items` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `order_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `quantity` decimal(25,0) NOT NULL,
+  `unit_price` decimal(10,2) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_order_items_order_id` (`order_id`),
+  KEY `idx_order_items_product_id` (`product_id`),
+  CONSTRAINT `fk_order_items_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_order_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+            const string insertOrderItemsSql = @"
+INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+VALUES
+    (1, 1, 10, 50),
+    (2, 2, 5, 350),
+    (3, 3, 20, 120);";
+
+            const string createAddressesSql = @"
+CREATE TABLE IF NOT EXISTS `addresses` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `city` varchar(100) NOT NULL,
+  `street` varchar(100) NOT NULL,
+  `house` varchar(20) NOT NULL,
+  `postal_code` varchar(20) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_addresses_user_id` (`user_id`),
+  CONSTRAINT `fk_addresses_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+            const string createPaymentsSql = @"
+CREATE TABLE IF NOT EXISTS `payments` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `order_id` int NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `payment_method` varchar(50) NOT NULL,
+  `status` varchar(30) NOT NULL,
+  `paid_at` datetime NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_payments_order_id` (`order_id`),
+  CONSTRAINT `fk_payments_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+            const string insertPaymentsSql = @"
+INSERT INTO payments (order_id, amount, payment_method, status, paid_at)
+VALUES
+    (1, 500, 'card', 'paid', '2026-05-11 10:00:00'),
+    (2, 1750, 'bank_transfer', 'pending', NULL),
+    (3, 2400, 'cash', 'pending', NULL);";
+
+            const string createProductsTableSql = @"
+CREATE TABLE IF NOT EXISTS `products` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `category_id` int NULL,
+  `quantity` decimal(25,0) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `photo` varchar(100) NOT NULL DEFAULT 'default.png',
+  PRIMARY KEY (`id`),
+  KEY `idx_products_category_id` (`category_id`),
+  CONSTRAINT `fk_products_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+            const string insertDemoProductsSql = @"
+INSERT INTO products (id, name, category_id, quantity, price, photo)
+VALUES
+    (1, 'Кирпич', 1, 100, 50, 'default.png'),
+    (2, 'Цемент', 1, 40, 350, 'default.png'),
+    (3, 'Песок', 2, 200, 120, 'default.png'),
+    (4, 'Доска', 3, 75, 500, 'default.png');";
+
+            const string createOrdersTableSql = @"
+CREATE TABLE IF NOT EXISTS `orders` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `date` date NOT NULL,
+  `user_id` int NOT NULL,
+  `total_price` decimal(10,2) NOT NULL,
+  `readiness` varchar(10) NOT NULL DEFAULT 'не готов',
+  PRIMARY KEY (`id`),
+  KEY `idx_orders_user_id` (`user_id`),
+  CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+            const string insertDemoOrdersSql = @"
+INSERT INTO orders (id, date, user_id, total_price, readiness)
+VALUES
+    (1, '2026-05-11', 49, 500, 'готов'),
+    (2, '2026-05-11', 50, 1750, 'не готов'),
+    (3, '2026-05-11', 51, 2400, 'не готов');";
+
+            _db.ExecuteNonQuery(createCategoriesSql);
+            _db.ExecuteNonQuery(insertCategoriesSql);
+            _db.ExecuteNonQuery(createProductsTableSql);
+            _db.ExecuteNonQuery(insertDemoProductsSql);
+            _db.ExecuteNonQuery(createOrdersTableSql);
+            _db.ExecuteNonQuery(insertDemoOrdersSql);
+            _db.ExecuteNonQuery(createOrderItemsSql);
+            _db.ExecuteNonQuery(insertOrderItemsSql);
+            _db.ExecuteNonQuery(createAddressesSql);
+            _db.ExecuteNonQuery(createPaymentsSql);
+            _db.ExecuteNonQuery(insertPaymentsSql);
         }
 
         public bool Register(string login, string password, string name, string phone, string email = "")
@@ -169,11 +289,11 @@ VALUES
 
             var insertSql = hasEmailColumn
                 ? @"
-INSERT INTO users (name, password, login, phone, status, money, img, inn, company_name, order_id, email)
-VALUES (@name, @password, @login, @phone, @status, @money, @img, @inn, @companyName, @orderId, @email);"
+INSERT INTO users (name, password, login, phone, status, money, img, email)
+VALUES (@name, @password, @login, @phone, @status, @money, @img, @email);"
                 : @"
-INSERT INTO users (name, password, login, phone, status, money, img, inn, company_name, order_id)
-VALUES (@name, @password, @login, @phone, @status, @money, @img, @inn, @companyName, @orderId);";
+INSERT INTO users (name, password, login, phone, status, money, img)
+VALUES (@name, @password, @login, @phone, @status, @money, @img);";
 
             return _db.ExecuteNonQuery(
                 insertSql,
@@ -185,10 +305,6 @@ VALUES (@name, @password, @login, @phone, @status, @money, @img, @inn, @companyN
                 DbHelper.Param("@money", 0),
                 // Для схем, где img NOT NULL, сохраняем пустой blob по умолчанию.
                 DbHelper.Param("@img", Array.Empty<byte>()),
-                // Дефолты для демо-схемы users, чтобы регистрация продолжала работать после быстрого сброса БД.
-                DbHelper.Param("@inn", 0),
-                DbHelper.Param("@companyName", string.Empty),
-                DbHelper.Param("@orderId", 0),
                 DbHelper.Param("@email", email)) > 0;
         }
 
@@ -322,5 +438,6 @@ WHERE id = @id;";
                 DbHelper.Param("@img", imageBytes),
                 DbHelper.Param("@id", userId)) > 0;
         }
+
     }
 }

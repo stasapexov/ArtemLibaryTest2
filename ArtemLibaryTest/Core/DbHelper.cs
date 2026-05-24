@@ -2,6 +2,7 @@
 using System.Data;
 using System.IO;
 using System.Text;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -86,6 +87,28 @@ namespace ArtemLibaryTest.Core
         public static MySqlParameter Param(string name, object? value)
         {
             return new MySqlParameter(name, value ?? DBNull.Value);
+        }
+        public static void AddWhereEqualsFromComboBox(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, object? selectedValue)
+        {
+            if (selectedValue == null || selectedValue == DBNull.Value)
+            {
+                return;
+            }
+
+            sql.Append($" AND {column} = {parameterName}");
+            parameters.Add(Param(parameterName, selectedValue));
+        }
+
+        public void LoadCategoriesToComboBox(ComboBox comboBox)
+        {
+            DataTable categories = GetTable("SELECT id, name FROM categories");
+            DataRow allRow = categories.NewRow();
+            allRow["id"] = DBNull.Value;
+            allRow["name"] = "Все категории";
+            categories.Rows.InsertAt(allRow, 0);
+
+            comboBox.ItemsSource = categories.DefaultView;
+            comboBox.SelectedIndex = 0;
         }
 
         public static void AddWhereEquals(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, object? value)
