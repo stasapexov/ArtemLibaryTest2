@@ -95,6 +95,7 @@ namespace ArtemLibaryTest.Core
                 return;
             }
 
+            column = NormalizeUnqualifiedIdColumn(column);
             EnsureCanAppendConditions(sql);
             sql.Append($" AND {column} = {parameterName}");
             parameters.Add(Param(parameterName, selectedValue));
@@ -205,6 +206,16 @@ namespace ArtemLibaryTest.Core
             {
                 sql.Length--;
             }
+        }
+
+        private static string NormalizeUnqualifiedIdColumn(string column)
+        {
+            if (string.Equals(column?.Trim(), "id", StringComparison.OrdinalIgnoreCase))
+            {
+                return "p.id";
+            }
+
+            return column;
         }
 
         public static void AddImagePathColumn(
