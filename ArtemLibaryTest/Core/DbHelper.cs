@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Linq;
 
 
 namespace ArtemLibaryTest.Core
@@ -192,6 +193,55 @@ ORDER BY display_order, id;";
 
             hostPanel.Children.Add(border);
             return border;
+        }
+
+        public Border? ToggleCharacteristicsForCard(Button sourceButton, string headerPrefix = "Характеристики: ")
+        {
+            if (sourceButton.DataContext is not DataRowView row)
+            {
+                return null;
+            }
+
+            var productId = Convert.ToInt32(row["id"]);
+            var productName = Convert.ToString(row["name"]) ?? $"ID {productId}";
+            var cardStack = FindParent<StackPanel>(sourceButton);
+
+            if (cardStack == null)
+            {
+                return null;
+            }
+
+            var tag = $"chars_{productId}";
+            var existing = cardStack.Children
+                .OfType<Border>()
+                .FirstOrDefault(x => Equals(x.Tag, tag));
+
+            if (existing != null)
+            {
+                cardStack.Children.Remove(existing);
+                return null;
+            }
+
+            var border = AddCharacteristics(cardStack, productId, $"{headerPrefix}{productName}");
+            border.Tag = tag;
+            return border;
+        }
+
+        private static T? FindParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject? parent = VisualTreeHelper.GetParent(child);
+
+            while (parent != null)
+            {
+                if (parent is T typedParent)
+                {
+                    return typedParent;
+                }
+
+                parent = VisualTreeHelper.GetParent(parent);
+            }
+
+            return null;
         }
 
         public static void AddWhereEquals(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, object? value)

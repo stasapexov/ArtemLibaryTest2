@@ -1,8 +1,6 @@
 using System.Data;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using ArtemLibaryTest.Core;
 
 namespace SampleWpf
@@ -30,47 +28,16 @@ namespace SampleWpf
 
         private void Characteristick_Click(object sender, RoutedEventArgs e)
         {
-            var button = (Button)sender;
-            var row = (DataRowView)button.DataContext;
-            var productId = Convert.ToInt32(row["id"]);
-            var productName = Convert.ToString(row["name"]) ?? $"ID {productId}";
-
-            var cardStack = FindParent<StackPanel>(button);
-            if (cardStack == null)
+            if (sender is not Button button)
             {
-                MessageBox.Show("Не найден контейнер карточки товара.");
                 return;
             }
 
-            var tag = $"chars_{productId}";
-            var existing = cardStack.Children
-                .OfType<Border>()
-                .FirstOrDefault(x => Equals(x.Tag, tag));
-
-            if (existing != null)
+            var result = _db.ToggleCharacteristicsForCard(button);
+            if (result == null && button.DataContext is not DataRowView)
             {
-                cardStack.Children.Remove(existing);
-                return;
+                MessageBox.Show("Не удалось показать характеристики: отсутствуют данные товара.");
             }
-
-            var border = _db.AddCharacteristics(cardStack, productId, $"Характеристики: {productName}");
-            border.Tag = tag;
-        }
-
-        private static T? FindParent<T>(DependencyObject child) where T : DependencyObject
-        {
-            DependencyObject? parent = VisualTreeHelper.GetParent(child);
-            while (parent != null)
-            {
-                if (parent is T typedParent)
-                {
-                    return typedParent;
-                }
-
-                parent = VisualTreeHelper.GetParent(parent);
-            }
-
-            return null;
         }
     }
 }
