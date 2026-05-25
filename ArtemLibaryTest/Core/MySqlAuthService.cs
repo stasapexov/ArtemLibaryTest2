@@ -51,6 +51,11 @@ LIMIT 1;";
 
         public void ResetDemoDatabase()
         {
+            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `product_characteristics`;");
+            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `reviews`;");
+            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `cart_items`;");
+            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `carts`;");
+            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `employees`;");
             _db.ExecuteNonQuery("DROP TABLE IF EXISTS `order_items`;");
             _db.ExecuteNonQuery("DROP TABLE IF EXISTS `payments`;");
             _db.ExecuteNonQuery("DROP TABLE IF EXISTS `addresses`;");
@@ -221,6 +226,109 @@ VALUES
     (2, 1750, 'bank_transfer', 'pending', NULL),
     (3, 2400, 'cash', 'pending', NULL);";
 
+            const string createEmployeesSql = @"
+CREATE TABLE IF NOT EXISTS `employees` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NULL,
+  `full_name` varchar(120) NOT NULL,
+  `position` varchar(80) NOT NULL,
+  `hire_date` date NOT NULL,
+  `salary` decimal(12,2) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_employees_user_id` (`user_id`),
+  CONSTRAINT `fk_employees_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+            const string insertEmployeesSql = @"
+INSERT INTO employees (id, user_id, full_name, position, hire_date, salary)
+VALUES
+    (1, 49, 'Артем Администратор', 'Администратор', '2025-01-15', 85000),
+    (2, 50, 'Артем Менеджер', 'Менеджер по продажам', '2025-04-02', 65000),
+    (3, NULL, 'Иван Кладовщик', 'Кладовщик', '2024-10-20', 55000);";
+
+            const string createCartsSql = @"
+CREATE TABLE IF NOT EXISTS `carts` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'active',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ux_carts_user_active` (`user_id`, `status`),
+  CONSTRAINT `fk_carts_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+            const string insertCartsSql = @"
+INSERT INTO carts (id, user_id, status, created_at)
+VALUES
+    (1, 49, 'active', '2026-05-12 08:00:00'),
+    (2, 50, 'active', '2026-05-12 09:15:00');";
+
+            const string createCartItemsSql = @"
+CREATE TABLE IF NOT EXISTS `cart_items` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `cart_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `quantity` decimal(25,0) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_cart_items_cart_id` (`cart_id`),
+  KEY `idx_cart_items_product_id` (`product_id`),
+  CONSTRAINT `fk_cart_items_cart` FOREIGN KEY (`cart_id`) REFERENCES `carts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_cart_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+            const string insertCartItemsSql = @"
+INSERT INTO cart_items (cart_id, product_id, quantity)
+VALUES
+    (1, 1, 12),
+    (1, 2, 1),
+    (2, 3, 5);";
+
+            const string createReviewsSql = @"
+CREATE TABLE IF NOT EXISTS `reviews` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `rating` tinyint NOT NULL,
+  `review_text` varchar(1000) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_reviews_user_id` (`user_id`),
+  KEY `idx_reviews_product_id` (`product_id`),
+  CONSTRAINT `chk_reviews_rating` CHECK (`rating` BETWEEN 1 AND 5),
+  CONSTRAINT `fk_reviews_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_reviews_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+            const string insertReviewsSql = @"
+INSERT INTO reviews (user_id, product_id, rating, review_text, created_at)
+VALUES
+    (49, 1, 5, 'Отличный кирпич, ровный и прочный.', '2026-05-12 12:10:00'),
+    (50, 2, 4, 'Цемент хороший, но упаковка была немного порвана.', '2026-05-12 13:20:00'),
+    (51, 3, 5, 'Песок чистый, без мусора.', '2026-05-12 15:40:00');";
+
+            const string createProductCharacteristicsSql = @"
+CREATE TABLE IF NOT EXISTS `product_characteristics` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `name` varchar(120) NOT NULL,
+  `value` varchar(500) NOT NULL,
+  `display_order` int NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_product_characteristics_product_id` (`product_id`),
+  CONSTRAINT `fk_product_characteristics_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+            const string insertProductCharacteristicsSql = @"
+INSERT INTO product_characteristics (product_id, name, value, display_order)
+VALUES
+    (1, 'Марка прочности', 'М150', 1),
+    (1, 'Размер', '250x120x65 мм', 2),
+    (2, 'Класс', 'ПЦ 500 Д0', 1),
+    (2, 'Вес мешка', '50 кг', 2),
+    (3, 'Фракция', '0.5-2.0 мм', 1),
+    (4, 'Порода древесины', 'Сосна', 1),
+    (4, 'Влажность', 'до 18%', 2);";
+
             const string createProductsTableSql = @"
 CREATE TABLE IF NOT EXISTS `products` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -272,6 +380,16 @@ VALUES
             _db.ExecuteNonQuery(createAddressesSql);
             _db.ExecuteNonQuery(createPaymentsSql);
             _db.ExecuteNonQuery(insertPaymentsSql);
+            _db.ExecuteNonQuery(createEmployeesSql);
+            _db.ExecuteNonQuery(insertEmployeesSql);
+            _db.ExecuteNonQuery(createCartsSql);
+            _db.ExecuteNonQuery(insertCartsSql);
+            _db.ExecuteNonQuery(createCartItemsSql);
+            _db.ExecuteNonQuery(insertCartItemsSql);
+            _db.ExecuteNonQuery(createReviewsSql);
+            _db.ExecuteNonQuery(insertReviewsSql);
+            _db.ExecuteNonQuery(createProductCharacteristicsSql);
+            _db.ExecuteNonQuery(insertProductCharacteristicsSql);
         }
 
         public bool Register(string login, string password, string name, string phone, string email = "")
