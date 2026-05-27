@@ -52,13 +52,9 @@ LIMIT 1;";
         public void ResetDemoDatabase()
         {
             _db.ExecuteNonQuery("DROP TABLE IF EXISTS `product_characteristics`;");
-            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `reviews`;");
-            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `cart_items`;");
-            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `carts`;");
             _db.ExecuteNonQuery("DROP TABLE IF EXISTS `employees`;");
             _db.ExecuteNonQuery("DROP TABLE IF EXISTS `order_items`;");
             _db.ExecuteNonQuery("DROP TABLE IF EXISTS `payments`;");
-            _db.ExecuteNonQuery("DROP TABLE IF EXISTS `addresses`;");
             _db.ExecuteNonQuery("DROP TABLE IF EXISTS `categories`;");
             _db.ExecuteNonQuery("DROP TABLE IF EXISTS `orders`;");
             _db.ExecuteNonQuery("DROP TABLE IF EXISTS `products`;");
@@ -83,9 +79,12 @@ CREATE TABLE IF NOT EXISTS `users` (
   `img` mediumblob NOT NULL,
   `phone` varchar(25) NOT NULL,
   `email` varchar(50) NOT NULL,
+  `city` varchar(100) NOT NULL DEFAULT '',
+  `street` varchar(100) NOT NULL DEFAULT '',
+  `house` varchar(20) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `ux_users_login` (`login`)
-) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
             _db.ExecuteNonQuery(createUsersTableSql);
 
@@ -115,7 +114,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   PRIMARY KEY (`id`),
   KEY `idx_products_category_id` (`category_id`),
   CONSTRAINT `fk_products_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
             _db.ExecuteNonQuery(createProductsTableSql);
 
@@ -144,7 +143,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
   PRIMARY KEY (`id`),
   KEY `idx_orders_user_id` (`user_id`),
   CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
             _db.ExecuteNonQuery(createOrdersTableSql);
 
@@ -166,7 +165,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
   `name` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ux_categories_name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
             const string insertCategoriesSql = @"
 INSERT INTO categories (id, name)
@@ -184,7 +183,7 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   KEY `idx_order_items_product_id` (`product_id`),
   CONSTRAINT `fk_order_items_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_order_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
             const string insertOrderItemsSql = @"
 INSERT INTO order_items (order_id, product_id, quantity, unit_price)
@@ -192,19 +191,6 @@ VALUES
     (1, 1, 10, 50),
     (2, 2, 5, 350),
     (3, 3, 20, 120);";
-
-            const string createAddressesSql = @"
-CREATE TABLE IF NOT EXISTS `addresses` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int NOT NULL,
-  `city` varchar(100) NOT NULL,
-  `street` varchar(100) NOT NULL,
-  `house` varchar(20) NOT NULL,
-  `postal_code` varchar(20) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_addresses_user_id` (`user_id`),
-  CONSTRAINT `fk_addresses_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
 
             const string createPaymentsSql = @"
 CREATE TABLE IF NOT EXISTS `payments` (
@@ -217,7 +203,7 @@ CREATE TABLE IF NOT EXISTS `payments` (
   PRIMARY KEY (`id`),
   KEY `idx_payments_order_id` (`order_id`),
   CONSTRAINT `fk_payments_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
             const string insertPaymentsSql = @"
 INSERT INTO payments (order_id, amount, payment_method, status, paid_at)
@@ -237,7 +223,7 @@ CREATE TABLE IF NOT EXISTS `employees` (
   PRIMARY KEY (`id`),
   KEY `idx_employees_user_id` (`user_id`),
   CONSTRAINT `fk_employees_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
             const string insertEmployeesSql = @"
 INSERT INTO employees (id, user_id, full_name, position, hire_date, salary)
@@ -245,66 +231,6 @@ VALUES
     (1, 49, 'Артем Администратор', 'Администратор', '2025-01-15', 85000),
     (2, 50, 'Артем Менеджер', 'Менеджер по продажам', '2025-04-02', 65000),
     (3, NULL, 'Иван Кладовщик', 'Кладовщик', '2024-10-20', 55000);";
-
-            const string createCartsSql = @"
-CREATE TABLE IF NOT EXISTS `carts` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int NOT NULL,
-  `status` varchar(20) NOT NULL DEFAULT 'active',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `ux_carts_user_active` (`user_id`, `status`),
-  CONSTRAINT `fk_carts_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
-
-            const string insertCartsSql = @"
-INSERT INTO carts (id, user_id, status, created_at)
-VALUES
-    (1, 49, 'active', '2026-05-12 08:00:00'),
-    (2, 50, 'active', '2026-05-12 09:15:00');";
-
-            const string createCartItemsSql = @"
-CREATE TABLE IF NOT EXISTS `cart_items` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `cart_id` int NOT NULL,
-  `product_id` int NOT NULL,
-  `quantity` decimal(25,0) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_cart_items_cart_id` (`cart_id`),
-  KEY `idx_cart_items_product_id` (`product_id`),
-  CONSTRAINT `fk_cart_items_cart` FOREIGN KEY (`cart_id`) REFERENCES `carts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_cart_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
-
-            const string insertCartItemsSql = @"
-INSERT INTO cart_items (cart_id, product_id, quantity)
-VALUES
-    (1, 1, 12),
-    (1, 2, 1),
-    (2, 3, 5);";
-
-            const string createReviewsSql = @"
-CREATE TABLE IF NOT EXISTS `reviews` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int NOT NULL,
-  `product_id` int NOT NULL,
-  `rating` tinyint NOT NULL,
-  `review_text` varchar(1000) NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `idx_reviews_user_id` (`user_id`),
-  KEY `idx_reviews_product_id` (`product_id`),
-  CONSTRAINT `chk_reviews_rating` CHECK (`rating` BETWEEN 1 AND 5),
-  CONSTRAINT `fk_reviews_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_reviews_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
-
-            const string insertReviewsSql = @"
-INSERT INTO reviews (user_id, product_id, rating, review_text, created_at)
-VALUES
-    (49, 1, 5, 'Отличный кирпич, ровный и прочный.', '2026-05-12 12:10:00'),
-    (50, 2, 4, 'Цемент хороший, но упаковка была немного порвана.', '2026-05-12 13:20:00'),
-    (51, 3, 5, 'Песок чистый, без мусора.', '2026-05-12 15:40:00');";
 
             const string createProductCharacteristicsSql = @"
 CREATE TABLE IF NOT EXISTS `product_characteristics` (
@@ -316,7 +242,7 @@ CREATE TABLE IF NOT EXISTS `product_characteristics` (
   PRIMARY KEY (`id`),
   KEY `idx_product_characteristics_product_id` (`product_id`),
   CONSTRAINT `fk_product_characteristics_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
             const string insertProductCharacteristicsSql = @"
 INSERT INTO product_characteristics (product_id, name, value, display_order)
@@ -340,7 +266,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   PRIMARY KEY (`id`),
   KEY `idx_products_category_id` (`category_id`),
   CONSTRAINT `fk_products_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
             const string insertDemoProductsSql = @"
 INSERT INTO products (id, name, category_id, quantity, price, photo)
@@ -360,7 +286,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
   PRIMARY KEY (`id`),
   KEY `idx_orders_user_id` (`user_id`),
   CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 
             const string insertDemoOrdersSql = @"
 INSERT INTO orders (id, date, user_id, total_price, readiness)
@@ -377,17 +303,10 @@ VALUES
             _db.ExecuteNonQuery(insertDemoOrdersSql);
             _db.ExecuteNonQuery(createOrderItemsSql);
             _db.ExecuteNonQuery(insertOrderItemsSql);
-            _db.ExecuteNonQuery(createAddressesSql);
             _db.ExecuteNonQuery(createPaymentsSql);
             _db.ExecuteNonQuery(insertPaymentsSql);
             _db.ExecuteNonQuery(createEmployeesSql);
             _db.ExecuteNonQuery(insertEmployeesSql);
-            _db.ExecuteNonQuery(createCartsSql);
-            _db.ExecuteNonQuery(insertCartsSql);
-            _db.ExecuteNonQuery(createCartItemsSql);
-            _db.ExecuteNonQuery(insertCartItemsSql);
-            _db.ExecuteNonQuery(createReviewsSql);
-            _db.ExecuteNonQuery(insertReviewsSql);
             _db.ExecuteNonQuery(createProductCharacteristicsSql);
             _db.ExecuteNonQuery(insertProductCharacteristicsSql);
         }
