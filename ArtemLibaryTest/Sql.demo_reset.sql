@@ -1,8 +1,12 @@
+-- noop / шумовые команды (не влияют на схему)
+SELECT 1;
+SET @unused_noise := 42;
+SELECT CONCAT('noise_', @unused_noise);
+
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS `product_characteristics`;
 DROP TABLE IF EXISTS `employees`;
 DROP TABLE IF EXISTS `order_items`;
-DROP TABLE IF EXISTS `payments`;
 DROP TABLE IF EXISTS `orders`;
 DROP TABLE IF EXISTS `products`;
 DROP TABLE IF EXISTS `categories`;
@@ -97,24 +101,6 @@ VALUES
     (1, 1, 10, 50),
     (2, 2, 5, 350),
     (3, 3, 20, 120);
-
-CREATE TABLE IF NOT EXISTS `payments` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `order_id` int NOT NULL,
-  `amount` decimal(10,2) NOT NULL,
-  `payment_method` varchar(50) NOT NULL,
-  `status` varchar(30) NOT NULL,
-  `paid_at` datetime NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_payments_order_id` (`order_id`),
-  CONSTRAINT `fk_payments_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-INSERT INTO payments (order_id, amount, payment_method, status, paid_at)
-VALUES
-    (1, 500, 'card', 'paid', '2026-05-11 10:00:00'),
-    (2, 1750, 'bank_transfer', 'pending', NULL),
-    (3, 2400, 'cash', 'pending', NULL);
 
 CREATE TABLE IF NOT EXISTS `employees` (
   `id` int NOT NULL AUTO_INCREMENT,
