@@ -1,4 +1,4 @@
-﻿1.Добавьте в корень проекта AppMenuProvider.cs c кодом:
+1.Добавьте в корень проекта AppMenuProvider.cs c кодом:
 using ArtemLibaryTest.Models;
 using ArtemLibaryTest.QuickStart;
 
@@ -13,7 +13,7 @@ public class AppMenuProvider : IMenuProvider
                     Title = "Главная",
                     Tag = "Home",
                     Icon = "Home",
-                    Roles = ["admin", "user", "manager"],
+                    Roles = ["admin", "user", "manager", "guest"],
                     CreatePage = () => new Pages.HamePage()
                 },
                 new NavMenuItem
@@ -26,6 +26,14 @@ public class AppMenuProvider : IMenuProvider
                 },
                 new NavMenuItem
                 {
+                    Title = "Гостевая страница",
+                    Tag = "Guest",
+                    Icon = "View",
+                    Roles = ["guest"],
+                    CreatePage = () => new Pages.GuestPage()
+                },
+                new NavMenuItem
+                {
                     Title = "Админ панель",
                     Tag = "Admin",
                     Icon = "Admin",
@@ -35,6 +43,12 @@ public class AppMenuProvider : IMenuProvider
             ];
         }
     }
+
+Важно про гостевой режим:
+- при нажатии "Войти как гость" библиотека создает Session.CurrentUser со Status = "guest";
+- поэтому в AppMenuProvider можно показывать страницы гостям через Roles = ["guest"];
+- если страница нужна всем, добавьте guest вместе с другими ролями: Roles = ["admin", "manager", "user", "guest"].
+
 
 
 2.Добавьте DbConfig.cs:

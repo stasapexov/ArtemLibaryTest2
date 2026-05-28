@@ -1,4 +1,4 @@
-﻿using ArtemLibaryTest.Core;
+using ArtemLibaryTest.Core;
 using ArtemLibaryTest.Models;
 using System.Windows;
 
@@ -72,7 +72,7 @@ namespace ArtemLibaryTest.QuickStart
 
         private void GuestLogin_Click(object sender, RoutedEventArgs e)
         {
-            Session.CurrentUser = null;
+            Session.LoginAsGuest();
             new ReadyMainWindow(_context).Show();
             Close();
         }

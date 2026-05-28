@@ -1,4 +1,4 @@
-﻿using ArtemLibaryTest.Core;
+using ArtemLibaryTest.Core;
 using ModernWpf.Controls;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,6 +21,7 @@ namespace ArtemLibaryTest.QuickStart
             Title = $"{_context.Options.AppTitle} - Главное меню";
             HeaderText.Text = _context.Options.MainWelcomeText;
             UserInfoText.Text = $"Роль: {Session.CurrentUser?.Status}";
+            ProfileButton.Visibility = Session.IsGuest ? Visibility.Collapsed : Visibility.Visible;
             NavView.IsSettingsVisible = _context.Options.IsSettingsVisible;
             ShortCut();
             BuildMenu();

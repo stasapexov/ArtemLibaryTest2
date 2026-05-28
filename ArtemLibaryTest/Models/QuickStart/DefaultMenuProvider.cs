@@ -1,4 +1,4 @@
-﻿using ArtemLibaryTest.Models;
+using ArtemLibaryTest.Models;
 
 namespace ArtemLibaryTest.QuickStart
 {
@@ -22,7 +22,7 @@ namespace ArtemLibaryTest.QuickStart
                     Title = "Главная",
                     Tag = "Home",
                     Icon = "Home",
-                    Roles = ["admin", "manager", "user"],
+                    Roles = ["admin", "manager", "user", "guest"],
                     CreatePage = () => new DefaultHomePage(_options.MainWelcomeText)
                      },
                 new NavMenuItem
