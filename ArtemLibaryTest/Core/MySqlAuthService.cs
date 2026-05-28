@@ -1,7 +1,8 @@
-﻿using ArtemLibaryTest.Models;
+using ArtemLibaryTest.Models;
 using System.Data;
 using System.Reflection;
 using System.IO;
+using MySql.Data.MySqlClient;
 
 namespace ArtemLibaryTest.Core
 {
@@ -85,14 +86,34 @@ LIMIT 1;";
             var sqlScript = reader.ReadToEnd();
 
             var commands = sqlScript.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            foreach (var command in commands)
+
+            using var connection = new MySqlConnection(_db.ConnectionString);
+            connection.Open();
+
+            using var command = connection.CreateCommand();
+            command.CommandTimeout = 120;
+
+            foreach (var sqlCommand in commands)
             {
-                if (string.IsNullOrWhiteSpace(command))
+                if (string.IsNullOrWhiteSpace(sqlCommand))
                 {
                     continue;
                 }
 
-                _db.ExecuteNonQuery(command);
+                command.CommandText = sqlCommand;
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (MySqlException ex)
+                {
+                    var preview = sqlCommand.Length > 300
+                        ? sqlCommand[..300] + "..."
+                        : sqlCommand;
+                    throw new InvalidOperationException(
+                        $"Ошибка при создании демо-БД. Команда: {preview}",
+                        ex);
+                }
             }
         }
 

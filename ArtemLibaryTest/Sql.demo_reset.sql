@@ -1,7 +1,9 @@
--- noop / шумовые команды (не влияют на схему)
-SELECT 1;
-SET @unused_noise := 42;
-SELECT CONCAT('noise_', @unused_noise);
+-- noop commands (do not affect schema)
+-- Avoid SELECT here: older MySQL/MySql.Data can fail when reset commands return result sets.
+SET NAMES utf8;
+SET @unused_noise = 42;
+SET @unused_noise_text = 'demo_reset_prepare';
+SET @unused_noise_flag = IF(@unused_noise > 0, 1, 0);
 
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS `product_characteristics`;
@@ -28,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `house` varchar(20) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `ux_users_login` (`login`)
-) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 INSERT INTO users (id, login, password, name, status, money, img, phone, email)
 VALUES
@@ -42,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
   `name` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ux_categories_name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 INSERT INTO categories (id, name)
 VALUES (1, 'Строительные смеси'), (2, 'Сыпучие материалы'), (3, 'Пиломатериалы');
@@ -57,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   PRIMARY KEY (`id`),
   KEY `idx_products_category_id` (`category_id`),
   CONSTRAINT `fk_products_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 INSERT INTO products (id, name, category_id, quantity, price, photo)
 VALUES
@@ -75,7 +77,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
   PRIMARY KEY (`id`),
   KEY `idx_orders_user_id` (`user_id`),
   CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 INSERT INTO orders (id, date, user_id, total_price, readiness)
 VALUES
@@ -94,7 +96,7 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   KEY `idx_order_items_product_id` (`product_id`),
   CONSTRAINT `fk_order_items_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_order_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 INSERT INTO order_items (order_id, product_id, quantity, unit_price)
 VALUES
@@ -112,7 +114,7 @@ CREATE TABLE IF NOT EXISTS `employees` (
   PRIMARY KEY (`id`),
   KEY `idx_employees_user_id` (`user_id`),
   CONSTRAINT `fk_employees_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 INSERT INTO employees (id, user_id, full_name, position, hire_date, salary)
 VALUES
@@ -129,7 +131,7 @@ CREATE TABLE IF NOT EXISTS `product_characteristics` (
   PRIMARY KEY (`id`),
   KEY `idx_product_characteristics_product_id` (`product_id`),
   CONSTRAINT `fk_product_characteristics_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 INSERT INTO product_characteristics (product_id, name, value, display_order)
 VALUES

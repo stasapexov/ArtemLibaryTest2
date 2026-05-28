@@ -1,4 +1,4 @@
-﻿using MySql.Data.MySqlClient;
+using MySql.Data.MySqlClient;
 using System.Data;
 using System.IO;
 using System.Text;
@@ -14,6 +14,8 @@ namespace ArtemLibaryTest.Core
     public sealed class DbHelper
     {
         private readonly string _connectionString;
+
+        internal string ConnectionString => _connectionString;
 
         public DbHelper(string connectionString)
         {
