@@ -1,4 +1,4 @@
-﻿using System.Configuration;
+using System.Configuration;
 using System.Data;
 using System.Windows;
 using ArtemLibaryTest;
@@ -18,8 +18,9 @@ namespace SampleWpf
             var authService = new MySqlAuthService(DbConfig.ConnectionString);
             var options = new AuthUiOptions
             {
-                AppTitle = "Exam Demo",
-                MainWelcomeText = "Готовое главное меню из библиотеки"
+                AppTitle = "Мебельный интернет-магазин",
+                MainWelcomeText = "Мебельный интернет-магазин",
+                MenuProvider = new FurnitureShopMenuProvider()
             };
 
             var loginWindow = AuthUiLauncher.CreateLoginWindow(authService, options);

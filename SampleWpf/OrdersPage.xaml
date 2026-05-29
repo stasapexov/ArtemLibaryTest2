@@ -1,0 +1,23 @@
+<Page x:Class="SampleWpf.OrdersPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Orders">
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+            <TextBlock Text="Заказы" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock x:Name="RoleHintText" Margin="0,4,0,10" Foreground="Gray" />
+            <StackPanel x:Name="AdminFilterPanel" Orientation="Horizontal">
+                <TextBlock Text="Название товара:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBox x:Name="ProductNameFilterBox" Width="180" Margin="0,0,10,0" />
+                <TextBlock Text="Цена от:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBox x:Name="MinPriceBox" Width="90" Margin="0,0,10,0" />
+                <TextBlock Text="до:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBox x:Name="MaxPriceBox" Width="90" Margin="0,0,10,0" />
+                <Button Content="Найти" Click="SearchButton_Click" Padding="12,6" />
+                <Button Content="Сбросить" Click="ResetButton_Click" Margin="8,0,0,0" Padding="12,6" />
+                <Button x:Name="DeleteButton" Content="Удалить выбранный заказ" Click="DeleteButton_Click" Margin="8,0,0,0" Padding="12,6" />
+            </StackPanel>
+        </StackPanel>
+        <DataGrid x:Name="OrdersGrid" AutoGenerateColumns="True" IsReadOnly="True" SelectionMode="Single" />
+    </DockPanel>
+</Page>
