@@ -1,14 +1,8 @@
--- noop commands (do not affect schema)
--- Avoid SELECT here: older MySQL/MySql.Data can fail when reset commands return result sets.
 SET NAMES utf8;
-SET @unused_noise = 42;
-SET @unused_noise_text = 'demo_reset_prepare';
-SET @unused_noise_flag = IF(@unused_noise > 0, 1, 0);
-
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS `order_items`;
 DROP TABLE IF EXISTS `product_characteristics`;
 DROP TABLE IF EXISTS `employees`;
-DROP TABLE IF EXISTS `order_items`;
 DROP TABLE IF EXISTS `orders`;
 DROP TABLE IF EXISTS `products`;
 DROP TABLE IF EXISTS `categories`;
@@ -30,14 +24,14 @@ CREATE TABLE IF NOT EXISTS `users` (
   `house` varchar(20) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `ux_users_login` (`login`)
-) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
-INSERT INTO users (id, login, password, name, status, money, img, phone, email)
+INSERT INTO `users` (`id`, `login`, `password`, `name`, `status`, `money`, `img`, `phone`, `email`, `city`, `street`, `house`)
 VALUES
-    (1, 'artem', '12345', 'Artem', 'admin', 50000, X'', '+719321833', 'letsg527@gmail.com'),
-    (49, '1', '1', 'Artem', 'admin', 50000, X'', '+719321833', 'letsg527@gmail.com'),
-    (50, '2', '2', 'Artem', 'manager', 50000, X'', '+719321833', 'letsg527@gmail.com'),
-    (51, '3', '3', 'Artem', 'user', 50000, X'', '+719321833', 'letsg527@gmail.com');
+  (1, 'artem', '12345', 'Артем', 'admin', 50000.00, '', '+79990000001', 'admin@furniture-shop.local', 'Москва', 'Лесная', '1'),
+  (49, '1', '1', 'Администратор', 'admin', 50000.00, '', '+79990000002', 'admin.demo@furniture-shop.local', 'Москва', 'Лесная', '1'),
+  (50, '2', '2', 'Менеджер', 'manager', 30000.00, '', '+79990000003', 'manager@furniture-shop.local', 'Москва', 'Складская', '7'),
+  (51, '3', '3', 'Покупатель', 'user', 120000.00, '', '+79990000004', 'user@furniture-shop.local', 'Казань', 'Домашняя', '12');
 
 CREATE TABLE IF NOT EXISTS `categories` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -46,99 +40,60 @@ CREATE TABLE IF NOT EXISTS `categories` (
   UNIQUE KEY `ux_categories_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
-INSERT INTO categories (id, name)
-VALUES (1, 'Строительные смеси'), (2, 'Сыпучие материалы'), (3, 'Пиломатериалы');
+INSERT INTO `categories` (`id`, `name`)
+VALUES
+  (1, 'Диваны'),
+  (2, 'Кровати'),
+  (3, 'Столы'),
+  (4, 'Шкафы'),
+  (5, 'Стулья');
 
 CREATE TABLE IF NOT EXISTS `products` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
-  `category_id` int NULL,
-  `quantity` decimal(25,0) NOT NULL,
-  `price` decimal(10,2) NOT NULL,
+  `category_id` int DEFAULT NULL,
+  `quantity` int NOT NULL DEFAULT 0,
+  `price` decimal(10,2) NOT NULL DEFAULT 0,
   `photo` varchar(100) NOT NULL DEFAULT 'default.png',
+  `material` varchar(120) NOT NULL DEFAULT '',
+  `color` varchar(80) NOT NULL DEFAULT '',
+  `dimensions` varchar(80) NOT NULL DEFAULT '',
+  `description` varchar(500) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `idx_products_category_id` (`category_id`),
   CONSTRAINT `fk_products_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
-INSERT INTO products (id, name, category_id, quantity, price, photo)
+INSERT INTO `products` (`id`, `name`, `category_id`, `quantity`, `price`, `photo`, `material`, `color`, `dimensions`, `description`)
 VALUES
-    (1, 'Кирпич', 1, 100, 50, 'default.png'),
-    (2, 'Цемент', 1, 40, 350, 'default.png'),
-    (3, 'Песок', 2, 200, 120, 'default.png'),
-    (4, 'Доска', 3, 75, 500, 'default.png');
+  (1, 'Диван Милан', 1, 8, 45990.00, 'default.png', 'Велюр, массив сосны', 'Серый', '220x95x90 см', 'Раскладной диван для гостиной с бельевым ящиком'),
+  (2, 'Кровать Нордик', 2, 5, 38990.00, 'default.png', 'ЛДСП, металл', 'Белый дуб', '200x160 см', 'Двуспальная кровать с подъемным механизмом'),
+  (3, 'Стол Оскар', 3, 14, 15990.00, 'default.png', 'МДФ, металл', 'Орех', '140x80x75 см', 'Обеденный стол на шесть персон'),
+  (4, 'Шкаф Прага', 4, 4, 52990.00, 'default.png', 'ЛДСП, зеркало', 'Венге', '180x60x220 см', 'Трехстворчатый шкаф с зеркалом'),
+  (5, 'Стул Лайт', 5, 30, 4990.00, 'default.png', 'Бук, ткань', 'Бежевый', '45x50x88 см', 'Мягкий кухонный стул');
 
 CREATE TABLE IF NOT EXISTS `orders` (
   `id` int NOT NULL AUTO_INCREMENT,
   `date` date NOT NULL,
   `user_id` int NOT NULL,
-  `total_price` decimal(10,2) NOT NULL,
-  `readiness` varchar(10) NOT NULL DEFAULT 'не готов',
+  `product_id` int NOT NULL,
+  `product_name` varchar(100) NOT NULL,
+  `product_material` varchar(120) NOT NULL DEFAULT '',
+  `product_color` varchar(80) NOT NULL DEFAULT '',
+  `product_dimensions` varchar(80) NOT NULL DEFAULT '',
+  `quantity` int NOT NULL DEFAULT 1,
+  `unit_price` decimal(10,2) NOT NULL DEFAULT 0,
+  `total_price` decimal(10,2) NOT NULL DEFAULT 0,
+  `readiness` varchar(20) NOT NULL DEFAULT 'Новый',
   PRIMARY KEY (`id`),
   KEY `idx_orders_user_id` (`user_id`),
+  KEY `idx_orders_product_id` (`product_id`),
+  KEY `idx_orders_product_name` (`product_name`),
   CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
-INSERT INTO orders (id, date, user_id, total_price, readiness)
-VALUES
-    (1, '2026-05-11', 49, 500, 'готов'),
-    (2, '2026-05-11', 50, 1750, 'не готов'),
-    (3, '2026-05-11', 51, 2400, 'не готов');
-
-CREATE TABLE IF NOT EXISTS `order_items` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `order_id` int NOT NULL,
-  `product_id` int NOT NULL,
-  `quantity` decimal(25,0) NOT NULL,
-  `unit_price` decimal(10,2) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_order_items_order_id` (`order_id`),
-  KEY `idx_order_items_product_id` (`product_id`),
-  CONSTRAINT `fk_order_items_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_order_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
-INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+INSERT INTO `orders` (`id`, `date`, `user_id`, `product_id`, `product_name`, `product_material`, `product_color`, `product_dimensions`, `quantity`, `unit_price`, `total_price`, `readiness`)
 VALUES
-    (1, 1, 10, 50),
-    (2, 2, 5, 350),
-    (3, 3, 20, 120);
-
-CREATE TABLE IF NOT EXISTS `employees` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int NULL,
-  `full_name` varchar(120) NOT NULL,
-  `position` varchar(80) NOT NULL,
-  `hire_date` date NOT NULL,
-  `salary` decimal(12,2) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_employees_user_id` (`user_id`),
-  CONSTRAINT `fk_employees_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
-INSERT INTO employees (id, user_id, full_name, position, hire_date, salary)
-VALUES
-    (1, 49, 'Артем Администратор', 'Администратор', '2025-01-15', 85000),
-    (2, 50, 'Артем Менеджер', 'Менеджер по продажам', '2025-04-02', 65000),
-    (3, NULL, 'Иван Кладовщик', 'Кладовщик', '2024-10-20', 55000);
-
-CREATE TABLE IF NOT EXISTS `product_characteristics` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `product_id` int NOT NULL,
-  `name` varchar(120) NOT NULL,
-  `value` varchar(500) NOT NULL,
-  `display_order` int NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`),
-  KEY `idx_product_characteristics_product_id` (`product_id`),
-  CONSTRAINT `fk_product_characteristics_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
-INSERT INTO product_characteristics (product_id, name, value, display_order)
-VALUES
-    (1, 'Марка прочности', 'М150', 1),
-    (1, 'Размер', '250x120x65 мм', 2),
-    (2, 'Класс', 'ПЦ 500 Д0', 1),
-    (2, 'Вес мешка', '50 кг', 2),
-    (3, 'Фракция', '0.5-2.0 мм', 1),
-    (4, 'Порода древесины', 'Сосна', 1),
-    (4, 'Влажность', 'до 18%', 2);
+  (1, '2026-05-11', 51, 1, 'Диван Милан', 'Велюр, массив сосны', 'Серый', '220x95x90 см', 1, 45990.00, 45990.00, 'Готов'),
+  (2, '2026-05-12', 51, 3, 'Стол Оскар', 'МДФ, металл', 'Орех', '140x80x75 см', 2, 15990.00, 31980.00, 'Новый'),
+  (3, '2026-05-13', 49, 5, 'Стул Лайт', 'Бук, ткань', 'Бежевый', '45x50x88 см', 4, 4990.00, 19960.00, 'В работе');

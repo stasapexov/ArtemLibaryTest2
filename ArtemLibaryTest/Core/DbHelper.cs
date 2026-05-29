@@ -135,9 +135,21 @@ namespace ArtemLibaryTest.Core
         public DataTable GetProductCharacteristics(int productId)
         {
             const string sql = @"
-SELECT id, product_id, name, value, display_order
-FROM product_characteristics
-WHERE product_id = @productId
+SELECT 1 AS id, id AS product_id, 'Материал' AS name, material AS value, 1 AS display_order
+FROM products
+WHERE id = @productId AND material <> ''
+UNION ALL
+SELECT 2 AS id, id AS product_id, 'Цвет' AS name, color AS value, 2 AS display_order
+FROM products
+WHERE id = @productId AND color <> ''
+UNION ALL
+SELECT 3 AS id, id AS product_id, 'Размеры' AS name, dimensions AS value, 3 AS display_order
+FROM products
+WHERE id = @productId AND dimensions <> ''
+UNION ALL
+SELECT 4 AS id, id AS product_id, 'Описание' AS name, description AS value, 4 AS display_order
+FROM products
+WHERE id = @productId AND description <> ''
 ORDER BY display_order, id;";
 
             return GetTable(sql, Param("@productId", productId));
