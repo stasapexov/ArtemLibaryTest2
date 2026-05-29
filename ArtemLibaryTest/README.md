@@ -110,12 +110,3 @@ UsersGrid.ItemsSource = db.GetTableWithBlobImage(@"
 </DataGridTemplateColumn>
 ```
 
-## Публикация и индексирование для ИИ/поиска
-
-Чтобы Google и ИИ-системы быстрее поняли библиотеку:
-
-1. Сделайте репозиторий публичным на GitHub.
-2. Заполните блок **About** (краткое описание + ссылка).
-3. Добавьте **Topics** (например: `wpf`, `dotnet`, `mysql`, `auth`, `library`, `desktop`).
-4. Поддерживайте этот `README.md` в актуальном состоянии.
-5. Публикуйте новые версии пакета в NuGet с понятным changelog.

@@ -3,8 +3,10 @@ using System.Data;
 using System.IO;
 using System.Text;
 using System.Windows.Controls;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Linq;
 
 
 namespace ArtemLibaryTest.Core
@@ -12,6 +14,8 @@ namespace ArtemLibaryTest.Core
     public sealed class DbHelper
     {
         private readonly string _connectionString;
+
+        internal string ConnectionString => _connectionString;
 
         public DbHelper(string connectionString)
         {
@@ -109,6 +113,137 @@ namespace ArtemLibaryTest.Core
 
             comboBox.ItemsSource = categories.DefaultView;
             comboBox.SelectedIndex = 0;
+        }
+
+        public static void FillComboBox(ComboBox comboBox, params string[] items)
+        {
+            comboBox.Items.Clear();
+
+            foreach (string item in items)
+            {
+                comboBox.Items.Add(item);
+            }
+
+            if (comboBox.Items.Count > 0)
+            {
+                comboBox.SelectedIndex = 0;
+            }
+
+            comboBox.SelectedIndex = -1;
+        }
+
+        public DataTable GetProductCharacteristics(int productId)
+        {
+            const string sql = @"
+SELECT id, product_id, name, value, display_order
+FROM product_characteristics
+WHERE product_id = @productId
+ORDER BY display_order, id;";
+
+            return GetTable(sql, Param("@productId", productId));
+        }
+
+        public Border AddCharacteristics(
+            StackPanel hostPanel,
+            int productId,
+            string header = "Характеристики товара")
+        {
+            var table = GetProductCharacteristics(productId);
+
+            var contentPanel = new StackPanel { Margin = new Thickness(0) };
+            if (table.Rows.Count == 0)
+            {
+                contentPanel.Children.Add(new TextBlock
+                {
+                    Text = "Характеристики не заполнены.",
+                    Margin = new Thickness(0, 4, 0, 0)
+                });
+            }
+            else
+            {
+                foreach (DataRow row in table.Rows)
+                {
+                    var name = Convert.ToString(row["name"]) ?? string.Empty;
+                    var value = Convert.ToString(row["value"]) ?? string.Empty;
+                    contentPanel.Children.Add(new TextBlock
+                    {
+                        Text = $"• {name}: {value}",
+                        Margin = new Thickness(0, 2, 0, 2),
+                        TextWrapping = TextWrapping.Wrap
+                    });
+                }
+            }
+
+            var section = new StackPanel();
+            section.Children.Add(new TextBlock
+            {
+                Text = header,
+                FontWeight = FontWeights.SemiBold,
+                Margin = new Thickness(0, 0, 0, 8)
+            });
+            section.Children.Add(contentPanel);
+
+            var border = new Border
+            {
+                BorderBrush = new SolidColorBrush(Color.FromRgb(220, 220, 220)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(12),
+                Margin = new Thickness(0, 8, 0, 0),
+                Child = section
+            };
+
+            hostPanel.Children.Add(border);
+            return border;
+        }
+
+        public Border? ToggleCharacteristicsForCard(Button sourceButton, string headerPrefix = "Характеристики: ")
+        {
+            if (sourceButton.DataContext is not DataRowView row)
+            {
+                return null;
+            }
+
+            var productId = Convert.ToInt32(row["id"]);
+            var productName = Convert.ToString(row["name"]) ?? $"ID {productId}";
+            var cardStack = FindParent<StackPanel>(sourceButton);
+
+            if (cardStack == null)
+            {
+                return null;
+            }
+
+            var tag = $"chars_{productId}";
+            var existing = cardStack.Children
+                .OfType<Border>()
+                .FirstOrDefault(x => Equals(x.Tag, tag));
+
+            if (existing != null)
+            {
+                cardStack.Children.Remove(existing);
+                return null;
+            }
+
+            var border = AddCharacteristics(cardStack, productId, $"{headerPrefix}{productName}");
+            border.Tag = tag;
+            return border;
+        }
+
+        private static T? FindParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject? parent = VisualTreeHelper.GetParent(child);
+
+            while (parent != null)
+            {
+                if (parent is T typedParent)
+                {
+                    return typedParent;
+                }
+
+                parent = VisualTreeHelper.GetParent(parent);
+            }
+
+            return null;
         }
 
         public static void AddWhereEquals(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, object? value)

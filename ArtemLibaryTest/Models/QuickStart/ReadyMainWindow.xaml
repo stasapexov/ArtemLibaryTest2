@@ -24,7 +24,7 @@
             <Button Width="40" Height="32" Margin="0,0,8,0" Click="OpenSupport_Click" ToolTip="Техподдержка">
                 <ui:SymbolIcon Symbol="Message"/>
             </Button>
-            <Button Content="Профиль" Width="100" Height="32" Margin="0,0,8,0" Click="OpenProfile_Click"/>
+            <Button x:Name="ProfileButton" Content="Профиль" Width="100" Height="32" Margin="0,0,8,0" Click="OpenProfile_Click"/>
             <Button Content="Выйти" Width="100" Height="32" Click="Logout_Click"/>
         </StackPanel>
     </Grid>

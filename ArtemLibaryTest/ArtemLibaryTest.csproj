@@ -6,9 +6,17 @@
 		<EnableDefaultPageItems>true</EnableDefaultPageItems>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Title>TestLibrary2</Title>
+		<Title>ArtemLibaryTest</Title>
+		<PackageId>ArtemLibaryTest</PackageId>
+		<Authors>ArtemLibaryTest Team</Authors>
+		<RepositoryUrl>https://github.com/stasapexov/ArtemLibaryTest2</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageProjectUrl>https://github.com/stasapexov/ArtemLibaryTest2</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageTags>wpf;dotnet;mysql;authentication;desktop;library;demo-exam</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Version>1.3.5</Version>
+		<Version>1.4.6</Version>
 		<Description>Библиотека для Демо Экзамена C#/Wpf/ModernWpfUi/MySql</Description>
 	</PropertyGroup>
 
@@ -19,8 +27,12 @@
 	  <Page Remove="QuickStart\**" />
 	</ItemGroup>
 	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="" />
 		<None Include="readme.txt" Pack="true" PackagePath="." />
 		<None Include="DbHelper\readme.txt" Pack="true" PackagePath="DbHelper/" />
+	</ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Include="Sql.demo_reset.sql" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="ModernWpfUI" Version="0.9.6" />

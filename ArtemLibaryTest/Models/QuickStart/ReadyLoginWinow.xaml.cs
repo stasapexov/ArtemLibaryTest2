@@ -70,6 +70,13 @@ namespace ArtemLibaryTest.QuickStart
             Close();
         }
 
+        private void GuestLogin_Click(object sender, RoutedEventArgs e)
+        {
+            Session.LoginAsGuest();
+            new ReadyMainWindow(_context).Show();
+            Close();
+        }
+
         private void GoToRegister_Click(object sender, RoutedEventArgs e)
         {
             new ReadyRegisterWindow(_context).Show();

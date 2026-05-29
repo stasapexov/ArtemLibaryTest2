@@ -24,7 +24,7 @@ using System.Text;
 public static class DbConfig
 {
     public const string ConnectionString =
-        "Server=127.0.0.1;Port=3306;Database=exam_demo;Uid=root;Pwd=;SslMode=None;Protocol=Tcp;";
+        "Server=127.0.0.1;Port=3306;Database=exam_demo;Uid=root;Pwd=;SslMode=None;Protocol=Tcp;AllowUserVariables=True;AllowZeroDateTime=True;";
 }
 
 Если MySQL 8 просит публичный ключ, используйте вариант с AllowPublicKeyRetrieval:
