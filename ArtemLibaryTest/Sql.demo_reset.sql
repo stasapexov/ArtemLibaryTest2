@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
   `quantity` int NOT NULL DEFAULT 1,
   `unit_price` decimal(10,2) NOT NULL DEFAULT 0,
   `total_price` decimal(10,2) NOT NULL DEFAULT 0,
-  `readiness` varchar(20) NOT NULL DEFAULT 'Новый',
+  `readiness` varchar(20) NOT NULL DEFAULT 'New',
   PRIMARY KEY (`id`),
   KEY `idx_orders_user_id` (`user_id`),
   KEY `idx_orders_product_id` (`product_id`),
