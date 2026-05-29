@@ -16,7 +16,7 @@
 		<PackageTags>wpf;dotnet;mysql;authentication;desktop;library;demo-exam</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Version>1.4.7</Version>
+		<Version>1.5</Version>
 		<Description>Библиотека для Демо Экзамена C#/Wpf/ModernWpfUi/MySql</Description>
 	</PropertyGroup>
 
