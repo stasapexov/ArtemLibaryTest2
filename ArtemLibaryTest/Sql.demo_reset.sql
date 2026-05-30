@@ -1,4 +1,3 @@
--- я здесь
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -129,5 +128,16 @@ CREATE TABLE IF NOT EXISTS `employees` (
   `position` varchar(100) NOT NULL,
   `phone` varchar(25) NOT NULL,
   `email` varchar(50) NOT NULL,
-  PRIMARY KEY (`id`)
+  `hire_date` date NOT NULL,
+  `salary` decimal(10,2) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ux_employees_phone` (`phone`),
+  UNIQUE KEY `ux_employees_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `employees`
+(`id`, `name`, `position`, `phone`, `email`, `hire_date`, `salary`)
+VALUES
+  (1, 'Иван Петров', 'Директор', '+79991110001', 'director@furniture-shop.local', '2024-01-15', 120000.00),
+  (2, 'Анна Смирнова', 'Менеджер по продажам', '+79991110002', 'sales@furniture-shop.local', '2024-03-01', 85000.00),
+  (3, 'Олег Иванов', 'Сборщик мебели', '+79991110003', 'assembler@furniture-shop.local', '2024-04-10', 70000.00);
