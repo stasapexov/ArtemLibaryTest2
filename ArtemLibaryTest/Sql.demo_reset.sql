@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS `order_items`;
 DROP TABLE IF EXISTS `product_characteristics`;
 DROP TABLE IF EXISTS `employees`;
 DROP TABLE IF EXISTS `orders`;
+DROP TABLE IF EXISTS `pickup_points`;
 DROP TABLE IF EXISTS `products`;
 DROP TABLE IF EXISTS `categories`;
 DROP TABLE IF EXISTS `users`;
@@ -69,6 +70,19 @@ CREATE TABLE IF NOT EXISTS `products` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 
+CREATE TABLE IF NOT EXISTS `pickup_points` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `city` varchar(100) NOT NULL DEFAULT '',
+  `street` varchar(100) NOT NULL DEFAULT '',
+  `house` varchar(20) NOT NULL DEFAULT '',
+  `phone` varchar(25) NOT NULL DEFAULT '',
+  `working_hours` varchar(100) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `idx_pickup_points_city` (`city`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+
 CREATE TABLE IF NOT EXISTS `orders` (
   `id` int NOT NULL AUTO_INCREMENT,
   `date` date NOT NULL,
@@ -82,10 +96,15 @@ CREATE TABLE IF NOT EXISTS `orders` (
   `unit_price` decimal(10,2) NOT NULL DEFAULT 0,
   `total_price` decimal(10,2) NOT NULL DEFAULT 0,
   `readiness` varchar(20) NOT NULL DEFAULT 'New',
+  `pickup_point_id` int DEFAULT NULL,
+  `pickup_address` varchar(255) NOT NULL DEFAULT '',
+  `pickup_code` varchar(12) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `idx_orders_user_id` (`user_id`),
   KEY `idx_orders_product_id` (`product_id`),
   KEY `idx_orders_product_name` (`product_name`),
+  KEY `idx_orders_pickup_point_id` (`pickup_point_id`),
+  KEY `idx_orders_pickup_code` (`pickup_code`),
   CONSTRAINT `fk_orders_user`
     FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`)
@@ -95,6 +114,11 @@ CREATE TABLE IF NOT EXISTS `orders` (
     FOREIGN KEY (`product_id`)
     REFERENCES `products` (`id`)
     ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_orders_pickup_point`
+    FOREIGN KEY (`pickup_point_id`)
+    REFERENCES `pickup_points` (`id`)
+    ON DELETE SET NULL
     ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
@@ -150,7 +174,10 @@ SELECT
   oi.quantity,
   oi.price AS unit_price,
   oi.quantity * oi.price AS total_price,
-  o.readiness
+  o.readiness,
+  o.pickup_point_id,
+  o.pickup_address,
+  o.pickup_code
 FROM `order_items` oi
 INNER JOIN `orders` o ON o.id = oi.order_id
 INNER JOIN `products` p ON p.id = oi.product_id
@@ -186,7 +213,10 @@ SELECT
   oi.price AS unit_price,
   oi.quantity * oi.price AS total_price,
   GROUP_CONCAT(CONCAT(pc.name, ': ', pc.value) ORDER BY pc.name SEPARATOR ', ') AS product_characteristics,
-  o.readiness
+  o.readiness,
+  o.pickup_point_id,
+  o.pickup_address,
+  o.pickup_code
 FROM `orders` o
 INNER JOIN `users` u ON u.id = o.user_id
 INNER JOIN `order_items` oi ON oi.order_id = o.id
@@ -195,7 +225,8 @@ LEFT JOIN `categories` c ON c.id = p.category_id
 LEFT JOIN `product_characteristics` pc ON pc.product_id = p.id
 GROUP BY
   o.id, o.date, o.user_id, u.login, u.name,
-  oi.id, p.id, p.name, c.name, oi.quantity, oi.price, o.readiness;
+  oi.id, p.id, p.name, c.name, oi.quantity, oi.price,
+  o.readiness, o.pickup_point_id, o.pickup_address, o.pickup_code;
 
 CREATE TABLE IF NOT EXISTS `employees` (
   `id` int NOT NULL AUTO_INCREMENT,
