@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS `order_items`;
 DROP TABLE IF EXISTS `product_characteristics`;
 DROP TABLE IF EXISTS `employees`;
 DROP TABLE IF EXISTS `orders`;
+DROP TABLE IF EXISTS `pickup_points`;
 DROP TABLE IF EXISTS `products`;
 DROP TABLE IF EXISTS `categories`;
 DROP TABLE IF EXISTS `users`;
@@ -45,6 +46,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
 
 CREATE TABLE IF NOT EXISTS `products` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `article` varchar(50) NOT NULL,
   `name` varchar(100) NOT NULL,
   `category_id` int DEFAULT NULL,
   `quantity` int NOT NULL DEFAULT 0,
@@ -55,6 +57,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   `dimensions` varchar(80) NOT NULL DEFAULT '',
   `description` varchar(500) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
+  UNIQUE KEY `ux_products_article` (`article`),
   KEY `idx_products_category_id` (`category_id`),
   CONSTRAINT `fk_products_category`
     FOREIGN KEY (`category_id`)
@@ -63,11 +66,32 @@ CREATE TABLE IF NOT EXISTS `products` (
     ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `pickup_points` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `city` varchar(100) NOT NULL,
+  `street` varchar(100) NOT NULL,
+  `house` varchar(20) NOT NULL,
+  `work_schedule` varchar(100) NOT NULL DEFAULT '',
+  `phone` varchar(25) NOT NULL DEFAULT '',
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ux_pickup_points_address` (`city`, `street`, `house`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `pickup_points`
+(`id`, `name`, `city`, `street`, `house`, `work_schedule`, `phone`, `is_active`)
+VALUES
+  (1, 'ПВЗ Центральный', 'Moscow', 'Pushkina', '10', '09:00-21:00', '+79992220001', 1),
+  (2, 'ПВЗ Северный', 'Moscow', 'Lenina', '25', '10:00-20:00', '+79992220002', 1);
+
 CREATE TABLE IF NOT EXISTS `orders` (
   `id` int NOT NULL AUTO_INCREMENT,
   `date` date NOT NULL,
   `user_id` int NOT NULL,
   `product_id` int NOT NULL,
+  `pickup_point_id` int NOT NULL,
+  `pickup_code` varchar(20) NOT NULL,
   `product_name` varchar(100) NOT NULL,
   `product_material` varchar(120) NOT NULL DEFAULT '',
   `product_color` varchar(80) NOT NULL DEFAULT '',
@@ -79,10 +103,17 @@ CREATE TABLE IF NOT EXISTS `orders` (
   PRIMARY KEY (`id`),
   KEY `idx_orders_user_id` (`user_id`),
   KEY `idx_orders_product_id` (`product_id`),
+  KEY `idx_orders_pickup_point_id` (`pickup_point_id`),
   KEY `idx_orders_product_name` (`product_name`),
+  UNIQUE KEY `ux_orders_pickup_code` (`pickup_code`),
   CONSTRAINT `fk_orders_user`
     FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_orders_pickup_point`
+    FOREIGN KEY (`pickup_point_id`)
+    REFERENCES `pickup_points` (`id`)
     ON DELETE RESTRICT
     ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
