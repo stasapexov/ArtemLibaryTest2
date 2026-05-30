@@ -11,17 +11,27 @@ using System.Linq;
 
 namespace ArtemLibaryTest.Core
 {
+    /// <summary>
+    /// Помощник для выполнения MySQL-запросов, загрузки DataTable, заполнения ComboBox и подготовки изображений/карточек для WPF.
+    /// Краткая справка видна в Object Browser через XML-документацию; полный пример находится в README.md и Dbhelper/readme.txt.
+    /// </summary>
     public sealed class DbHelper
     {
         private readonly string _connectionString;
 
         internal string ConnectionString => _connectionString;
 
+        /// <summary>
+        /// Создаёт помощник для работы с MySQL по переданной строке подключения.
+        /// </summary>
         public DbHelper(string connectionString)
         {
             _connectionString = connectionString;
         }
 
+        /// <summary>
+        /// Выполняет INSERT, UPDATE, DELETE или другой SQL без результирующей таблицы и возвращает число изменённых строк.
+        /// </summary>
         public int ExecuteNonQuery(string sql, params MySqlParameter[] parameters)
         {
             using var connection = new MySqlConnection(_connectionString);
@@ -31,6 +41,9 @@ namespace ArtemLibaryTest.Core
             return command.ExecuteNonQuery();
         }
 
+        /// <summary>
+        /// Выполняет запрос и возвращает первое значение первой строки результата.
+        /// </summary>
         public object? ExecuteScalar(string sql, params MySqlParameter[] parameters)
         {
             using var connection = new MySqlConnection(_connectionString);
@@ -40,6 +53,9 @@ namespace ArtemLibaryTest.Core
             return command.ExecuteScalar();
         }
 
+        /// <summary>
+        /// Выполняет SELECT-запрос и возвращает результат в DataTable.
+        /// </summary>
         public DataTable GetTable(string sql, params MySqlParameter[] parameters)
         {
             using var connection = new MySqlConnection(_connectionString);
@@ -53,11 +69,17 @@ namespace ArtemLibaryTest.Core
             return table;
         }
 
+        /// <summary>
+        /// Загружает таблицу и добавляет колонку Img с путём к изображению из колонки photo в папке img.
+        /// </summary>
         public DataTable GetTableWithImagePath(string sql, params MySqlParameter[] parameters)
         {
             return GetTableWithImagePath(sql, "photo", "Img", "img", parameters);
         }
 
+        /// <summary>
+        /// Загружает таблицу и добавляет настраиваемую колонку с полным путём к файлу изображения.
+        /// </summary>
         public DataTable GetTableWithImagePath(
             string sql,
             string photoColumn,
@@ -70,11 +92,18 @@ namespace ArtemLibaryTest.Core
 
             return table;
         }
+
+        /// <summary>
+        /// Загружает таблицу и добавляет колонку ImgSource с ImageSource из BLOB-колонки img.
+        /// </summary>
         public DataTable GetTableWithBlobImage(string sql, params MySqlParameter[] parameters)
         {
             return GetTableWithBlobImage(sql, "img", "ImgSource", parameters);
         }
 
+        /// <summary>
+        /// Загружает таблицу и добавляет настраиваемую колонку ImageSource из BLOB-данных.
+        /// </summary>
         public DataTable GetTableWithBlobImage(
             string sql,
             string blobColumn,
@@ -98,13 +127,23 @@ namespace ArtemLibaryTest.Core
         }
 
 
+        /// <summary>
+        /// Создаёт MySqlParameter и автоматически заменяет null на DBNull.Value.
+        /// </summary>
         public static MySqlParameter Param(string name, object? value)
         {
             return new MySqlParameter(name, value ?? DBNull.Value);
         }
+
+        /// <summary>
+        /// Добавляет условие AND column = @parameter для выбранного значения ComboBox.
+        /// Пустое значение, DBNull.Value и DependencyProperty.UnsetValue пропускаются, поэтому метод безопасно вызывать до загрузки ComboBox.
+        /// </summary>
         public static void AddWhereEqualsFromComboBox(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, object? selectedValue)
         {
-            if (selectedValue == null || selectedValue == DBNull.Value)
+            selectedValue = NormalizeComboBoxSelectedValue(selectedValue);
+
+            if (selectedValue == null)
             {
                 return;
             }
@@ -113,6 +152,25 @@ namespace ArtemLibaryTest.Core
             parameters.Add(Param(parameterName, selectedValue));
         }
 
+        /// <summary>
+        /// Добавляет условие AND column = @parameter по текущему SelectedValue у ComboBox.
+        /// Если SelectedValuePath ещё не применился, метод попробует взять значение из SelectedItem/DataRowView.
+        /// </summary>
+        public static void AddWhereEqualsFromComboBox(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, ComboBox comboBox)
+        {
+            var selectedValue = NormalizeComboBoxSelectedValue(comboBox.SelectedValue);
+
+            if (selectedValue == null && comboBox.SelectedItem is DataRowView rowView)
+            {
+                selectedValue = GetComboBoxValueFromRow(comboBox, rowView);
+            }
+
+            AddWhereEqualsFromComboBox(sql, parameters, column, parameterName, selectedValue);
+        }
+
+        /// <summary>
+        /// Заполняет WPF ComboBox данными SQL-запроса и настраивает DisplayMemberPath/SelectedValuePath.
+        /// </summary>
         public void LoadComboBox(
             ComboBox comboBox,
             string sql,
@@ -123,22 +181,33 @@ namespace ArtemLibaryTest.Core
         {
             var table = GetTable(sql, parameters);
 
-            if (!string.IsNullOrWhiteSpace(firstItemText) &&
-                table.Columns.Contains(displayColumn) &&
-                table.Columns.Contains(valueColumn))
+            if (table.Columns.Count == 0)
+            {
+                comboBox.ItemsSource = null;
+                comboBox.SelectedIndex = -1;
+                return;
+            }
+
+            var actualDisplayColumn = FindColumnName(table, displayColumn) ?? table.Columns[0].ColumnName;
+            var actualValueColumn = FindColumnName(table, valueColumn) ?? table.Columns[0].ColumnName;
+
+            if (!string.IsNullOrWhiteSpace(firstItemText))
             {
                 var firstRow = table.NewRow();
-                firstRow[valueColumn] = DBNull.Value;
-                firstRow[displayColumn] = firstItemText;
+                firstRow[actualValueColumn] = DBNull.Value;
+                firstRow[actualDisplayColumn] = firstItemText;
                 table.Rows.InsertAt(firstRow, 0);
             }
 
             comboBox.ItemsSource = table.DefaultView;
-            comboBox.DisplayMemberPath = displayColumn;
-            comboBox.SelectedValuePath = valueColumn;
+            comboBox.DisplayMemberPath = actualDisplayColumn;
+            comboBox.SelectedValuePath = actualValueColumn;
             comboBox.SelectedIndex = table.Rows.Count > 0 ? 0 : -1;
         }
 
+        /// <summary>
+        /// Загружает категории из таблицы categories в ComboBox и добавляет пункт «Все категории».
+        /// </summary>
         public void LoadCategoriesToComboBox(ComboBox comboBox)
         {
             LoadComboBox(
@@ -149,6 +218,9 @@ namespace ArtemLibaryTest.Core
                 "Все категории");
         }
 
+        /// <summary>
+        /// Заполняет ComboBox фиксированным списком строк.
+        /// </summary>
         public static void FillComboBox(ComboBox comboBox, params string[] items)
         {
             comboBox.Items.Clear();
@@ -164,6 +236,48 @@ namespace ArtemLibaryTest.Core
             }
 
             comboBox.SelectedIndex = -1;
+        }
+
+        private static object? NormalizeComboBoxSelectedValue(object? selectedValue)
+        {
+            if (selectedValue == null ||
+                selectedValue == DBNull.Value ||
+                selectedValue == DependencyProperty.UnsetValue ||
+                (selectedValue is string text && string.IsNullOrWhiteSpace(text)))
+            {
+                return null;
+            }
+
+            return selectedValue;
+        }
+
+        private static object? GetComboBoxValueFromRow(ComboBox comboBox, DataRowView rowView)
+        {
+            var valueColumn = string.IsNullOrWhiteSpace(comboBox.SelectedValuePath)
+                ? null
+                : comboBox.SelectedValuePath;
+
+            if (valueColumn != null && rowView.Row.Table.Columns.Contains(valueColumn))
+            {
+                return NormalizeComboBoxSelectedValue(rowView[valueColumn]);
+            }
+
+            return rowView.Row.ItemArray
+                .Select(NormalizeComboBoxSelectedValue)
+                .FirstOrDefault(value => value != null);
+        }
+
+        private static string? FindColumnName(DataTable table, string columnName)
+        {
+            if (table.Columns.Contains(columnName))
+            {
+                return columnName;
+            }
+
+            return table.Columns
+                .Cast<DataColumn>()
+                .FirstOrDefault(column => column.ColumnName.Equals(columnName, StringComparison.OrdinalIgnoreCase))
+                ?.ColumnName;
         }
 
         public DataTable GetProductCharacteristics(int productId)
@@ -393,6 +507,9 @@ ORDER BY display_order, id;";
             return null;
         }
 
+        /// <summary>
+        /// Добавляет условие AND column = @parameter, если значение не null.
+        /// </summary>
         public static void AddWhereEquals(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, object? value)
         {
             if (value == null)
@@ -404,6 +521,9 @@ ORDER BY display_order, id;";
             parameters.Add(Param(parameterName, value));
         }
 
+        /// <summary>
+        /// Добавляет условие AND column &gt;= @parameter, если минимальное значение задано.
+        /// </summary>
         public static void AddWhereMin(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, double? value)
         {
             if (!value.HasValue)
@@ -415,6 +535,9 @@ ORDER BY display_order, id;";
             parameters.Add(Param(parameterName, value.Value));
         }
 
+        /// <summary>
+        /// Добавляет условие AND column &lt;= @parameter, если максимальное значение задано.
+        /// </summary>
         public static void AddWhereMax(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, double? value)
         {
             if (!value.HasValue)
@@ -426,6 +549,9 @@ ORDER BY display_order, id;";
             parameters.Add(Param(parameterName, value.Value));
         }
 
+        /// <summary>
+        /// Добавляет условие AND column LIKE @parameter, если строка поиска заполнена.
+        /// </summary>
         public static void AddWhereLike(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, string? value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -436,6 +562,10 @@ ORDER BY display_order, id;";
             sql.Append($" AND {column} LIKE {parameterName}");
             parameters.Add(Param(parameterName, $"%{value.Trim()}%"));
         }
+
+        /// <summary>
+        /// Добавляет LIKE-фильтр по каждому слову поисковой строки, объединяя слова через OR.
+        /// </summary>
         public static void AddWhereLikeAnyWord(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, string? value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -470,6 +600,9 @@ ORDER BY display_order, id;";
             sql.Append(')');
         }
 
+        /// <summary>
+        /// Добавляет в DataTable строковую колонку с полным путём к файлу изображения.
+        /// </summary>
         public static void AddImagePathColumn(
             DataTable table,
             string photoColumn = "photo",
@@ -490,6 +623,10 @@ ORDER BY display_order, id;";
                 row[imagePathColumn] = Path.Combine(imagesRoot, string.IsNullOrWhiteSpace(fileName) ? "default.png" : fileName);
             }
         }
+
+        /// <summary>
+        /// Добавляет в DataTable колонку ImageSource, созданную из BLOB, Stream или base64-строки.
+        /// </summary>
         public static void AddBlobImageColumn(
             DataTable table,
             string blobColumn = "img",
