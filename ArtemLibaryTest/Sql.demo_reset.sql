@@ -1,9 +1,6 @@
 SET NAMES utf8;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP VIEW IF EXISTS `v_order_items_products`;
-DROP VIEW IF EXISTS `v_products_characteristics`;
-DROP VIEW IF EXISTS `v_order_details`;
 
 DROP TABLE IF EXISTS `order_items`;
 DROP TABLE IF EXISTS `product_characteristics`;
@@ -160,73 +157,6 @@ CREATE TABLE IF NOT EXISTS `product_characteristics` (
     ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
-
-CREATE VIEW `v_order_items_products` AS
-SELECT
-  oi.id AS order_item_id,
-  oi.order_id,
-  o.date AS order_date,
-  o.user_id,
-  oi.product_id,
-  p.name AS product_name,
-  p.category_id,
-  c.name AS category_name,
-  oi.quantity,
-  oi.price AS unit_price,
-  oi.quantity * oi.price AS total_price,
-  o.readiness,
-  o.pickup_point_id,
-  o.pickup_address,
-  o.pickup_code
-FROM `order_items` oi
-INNER JOIN `orders` o ON o.id = oi.order_id
-INNER JOIN `products` p ON p.id = oi.product_id
-LEFT JOIN `categories` c ON c.id = p.category_id;
-
-CREATE VIEW `v_products_characteristics` AS
-SELECT
-  p.id AS product_id,
-  p.name AS product_name,
-  p.category_id,
-  c.name AS category_name,
-  p.quantity,
-  p.price,
-  p.photo,
-  pc.name AS characteristic_name,
-  pc.value AS characteristic_value
-FROM `products` p
-LEFT JOIN `categories` c ON c.id = p.category_id
-LEFT JOIN `product_characteristics` pc ON pc.product_id = p.id;
-
-CREATE VIEW `v_order_details` AS
-SELECT
-  o.id AS order_id,
-  o.date AS order_date,
-  o.user_id,
-  u.login AS user_login,
-  u.name AS user_name,
-  oi.id AS order_item_id,
-  p.id AS product_id,
-  p.name AS product_name,
-  c.name AS category_name,
-  oi.quantity,
-  oi.price AS unit_price,
-  oi.quantity * oi.price AS total_price,
-  GROUP_CONCAT(CONCAT(pc.name, ': ', pc.value) ORDER BY pc.name SEPARATOR ', ') AS product_characteristics,
-  o.readiness,
-  o.pickup_point_id,
-  o.pickup_address,
-  o.pickup_code
-FROM `orders` o
-INNER JOIN `users` u ON u.id = o.user_id
-INNER JOIN `order_items` oi ON oi.order_id = o.id
-INNER JOIN `products` p ON p.id = oi.product_id
-LEFT JOIN `categories` c ON c.id = p.category_id
-LEFT JOIN `product_characteristics` pc ON pc.product_id = p.id
-GROUP BY
-  o.id, o.date, o.user_id, u.login, u.name,
-  oi.id, p.id, p.name, c.name, oi.quantity, oi.price,
-  o.readiness, o.pickup_point_id, o.pickup_address, o.pickup_code;
 
 CREATE TABLE IF NOT EXISTS `employees` (
   `id` int NOT NULL AUTO_INCREMENT,

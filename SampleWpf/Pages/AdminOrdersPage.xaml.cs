@@ -20,9 +20,19 @@ public partial class AdminOrdersPage : Page
     private void LoadOrders()
     {
         var table = _db.GetTable(@"
-SELECT order_id, order_date, user_login, product_name, quantity, total_price, readiness, pickup_address, pickup_code
-FROM v_order_details
-ORDER BY order_id DESC");
+SELECT
+    o.id AS order_id,
+    o.date AS order_date,
+    u.login AS user_login,
+    o.product_name,
+    o.quantity,
+    o.total_price,
+    o.readiness,
+    o.pickup_address,
+    o.pickup_code
+FROM orders o
+INNER JOIN users u ON u.id = o.user_id
+ORDER BY o.id DESC");
 
         OrdersGrid.ItemsSource = table.DefaultView;
         OrdersInfoTextBlock.Text = $"Заказов: {table.Rows.Count}";

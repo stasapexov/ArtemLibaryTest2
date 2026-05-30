@@ -24,10 +24,18 @@ public partial class MyOrdersPage : Page
         }
 
         var table = _db.GetTable(@"
-SELECT order_id, order_date, product_name, quantity, total_price, readiness, pickup_address, pickup_code
-FROM v_order_details
-WHERE user_id = @user_id
-ORDER BY order_id DESC",
+SELECT
+    o.id AS order_id,
+    o.date AS order_date,
+    o.product_name,
+    o.quantity,
+    o.total_price,
+    o.readiness,
+    o.pickup_address,
+    o.pickup_code
+FROM orders o
+WHERE o.user_id = @user_id
+ORDER BY o.id DESC",
             DbHelper.Param("@user_id", Session.CurrentUser.Id));
 
         OrdersGrid.ItemsSource = table.DefaultView;
