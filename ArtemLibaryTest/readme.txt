@@ -469,3 +469,79 @@ UsersGrid.ItemsSource = db.GetTableWithBlobImage(
     "avatar_blob",
     "AvatarImage").DefaultView;
 ```
+
+=== Примеры использования ArtemLibaryTest для демо-экзамена ===
+
+1) Явное создание демо-БД из встроенного SQL-скрипта
+
+using ArtemLibaryTest.Core;
+
+var auth = new MySqlAuthService(DbConfig.ConnectionString);
+auth.ResetDemoDatabase();
+
+Метод выполняет встроенный Sql.demo_reset.sql. Его удобно запускать один раз при подготовке демо-проекта или из отдельной кнопки администратора.
+
+2) Универсальная загрузка ComboBox
+
+using ArtemLibaryTest.Core;
+
+var db = new DbHelper(DbConfig.ConnectionString);
+
+db.LoadComboBox(
+    CategoryComboBox,
+    "SELECT id, name FROM categories ORDER BY name",
+    "name",
+    "id",
+    "Все категории");
+
+Для пункта выдачи можно использовать тот же метод:
+
+db.LoadComboBox(
+    PickupPointComboBox,
+    "SELECT id, name FROM pickup_points WHERE is_active = 1 ORDER BY name",
+    "name",
+    "id",
+    "Выберите пункт выдачи");
+
+3) Карточки характеристик из своего SELECT
+
+Сначала пишете обычный SQL-запрос с колонками, которые нужно показать:
+
+var products = db.LoadCardTable(@"
+SELECT id, article, name, material, color, dimensions, price
+FROM products
+ORDER BY name;");
+
+Потом добавляете строки результата в WPF-интерфейс как карточки:
+
+db.AddCardsFromTable(
+    ProductsPanel,
+    products,
+    "name",
+    "article",
+    "material",
+    "color",
+    "dimensions",
+    "price");
+
+ProductsPanel — это обычный StackPanel в XAML:
+
+<ScrollViewer>
+    <StackPanel x:Name="ProductsPanel" />
+</ScrollViewer>
+
+4) Пример фильтрации мебельного каталога
+
+var sql = new StringBuilder(@"
+SELECT id, article, name, material, color, dimensions, price, photo
+FROM products
+WHERE 1=1");
+
+var parameters = new List<MySqlParameter>();
+DbHelper.AddWhereEqualsFromComboBox(sql, parameters, "category_id", "@categoryId", CategoryComboBox.SelectedValue);
+DbHelper.AddWhereLikeAnyWord(sql, parameters, "name", "@name", SearchBox.Text);
+DbHelper.AddWhereMin(sql, parameters, "price", "@minPrice", 1000);
+DbHelper.AddWhereMax(sql, parameters, "price", "@maxPrice", 100000);
+
+var table = db.LoadCardTableWithImagePath(sql.ToString(), parameters.ToArray());
+db.AddCardsFromTable(ProductsPanel, table, "name", "article", "material", "color", "dimensions", "price");
