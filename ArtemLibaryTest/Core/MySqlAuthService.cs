@@ -1,7 +1,5 @@
 ﻿using ArtemLibaryTest.Models;
 using System.Data;
-using System.Reflection;
-using System.IO;
 using MySql.Data.MySqlClient;
 
 namespace ArtemLibaryTest.Core
@@ -50,71 +48,6 @@ LIMIT 1;";
                 Convert.ToString(row["status"]) ?? string.Empty,
                 row["money"] == DBNull.Value ? 0 : Convert.ToDouble(row["money"]),
                 row["img"] == DBNull.Value ? [] : (byte[])row["img"]);
-        }
-
-        public void ResetDemoDatabase()
-        {
-            ExecuteEmbeddedSqlScript("ArtemLibaryTest.Sql.demo_reset.sql");
-        }
-
-        public void ResetDemoUsers()
-        {
-            ResetDemoDatabase();
-        }
-
-        public void ResetDemoProducts()
-        {
-            ResetDemoDatabase();
-        }
-
-        public void ResetDemoOrders()
-        {
-            ResetDemoDatabase();
-        }
-
-        public void ResetDemoStoreTables()
-        {
-            ResetDemoDatabase();
-        }
-
-        private void ExecuteEmbeddedSqlScript(string resourceName)
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly.GetManifestResourceStream(resourceName)
-                ?? throw new InvalidOperationException($"Не найден SQL-ресурс: {resourceName}");
-            using var reader = new StreamReader(stream);
-            var sqlScript = reader.ReadToEnd();
-
-            var commands = sqlScript.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-            using var connection = new MySqlConnection(_db.ConnectionString);
-            connection.Open();
-
-            using var command = connection.CreateCommand();
-            command.CommandTimeout = 120;
-
-            foreach (var sqlCommand in commands)
-            {
-                if (string.IsNullOrWhiteSpace(sqlCommand))
-                {
-                    continue;
-                }
-
-                command.CommandText = sqlCommand;
-                try
-                {
-                    command.ExecuteNonQuery();
-                }
-                catch (MySqlException ex)
-                {
-                    var preview = sqlCommand.Length > 300
-                        ? sqlCommand[..300] + "..."
-                        : sqlCommand;
-                    throw new InvalidOperationException(
-                        $"Ошибка при создании демо-БД. Команда: {preview}",
-                        ex);
-                }
-            }
         }
 
         public bool Register(string login, string password, string name, string phone, string email = "")

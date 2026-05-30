@@ -87,6 +87,16 @@ namespace ArtemLibaryTest.Core
             return table;
         }
 
+        public DataTable LoadCardTable(string sql, params MySqlParameter[] parameters)
+        {
+            return GetTable(sql, parameters);
+        }
+
+        public DataTable LoadCardTableWithImagePath(string sql, params MySqlParameter[] parameters)
+        {
+            return GetTableWithImagePath(sql, parameters);
+        }
+
 
         public static MySqlParameter Param(string name, object? value)
         {
@@ -103,16 +113,40 @@ namespace ArtemLibaryTest.Core
             parameters.Add(Param(parameterName, selectedValue));
         }
 
+        public void LoadComboBox(
+            ComboBox comboBox,
+            string sql,
+            string displayColumn = "name",
+            string valueColumn = "id",
+            string? firstItemText = null,
+            params MySqlParameter[] parameters)
+        {
+            var table = GetTable(sql, parameters);
+
+            if (!string.IsNullOrWhiteSpace(firstItemText) &&
+                table.Columns.Contains(displayColumn) &&
+                table.Columns.Contains(valueColumn))
+            {
+                var firstRow = table.NewRow();
+                firstRow[valueColumn] = DBNull.Value;
+                firstRow[displayColumn] = firstItemText;
+                table.Rows.InsertAt(firstRow, 0);
+            }
+
+            comboBox.ItemsSource = table.DefaultView;
+            comboBox.DisplayMemberPath = displayColumn;
+            comboBox.SelectedValuePath = valueColumn;
+            comboBox.SelectedIndex = table.Rows.Count > 0 ? 0 : -1;
+        }
+
         public void LoadCategoriesToComboBox(ComboBox comboBox)
         {
-            DataTable categories = GetTable("SELECT id, name FROM categories");
-            DataRow allRow = categories.NewRow();
-            allRow["id"] = DBNull.Value;
-            allRow["name"] = "Все категории";
-            categories.Rows.InsertAt(allRow, 0);
-
-            comboBox.ItemsSource = categories.DefaultView;
-            comboBox.SelectedIndex = 0;
+            LoadComboBox(
+                comboBox,
+                "SELECT id, name FROM categories ORDER BY name",
+                "name",
+                "id",
+                "Все категории");
         }
 
         public static void FillComboBox(ComboBox comboBox, params string[] items)
@@ -195,18 +229,80 @@ ORDER BY display_order, id;";
             });
             section.Children.Add(contentPanel);
 
-            var border = new Border
-            {
-                BorderBrush = new SolidColorBrush(Color.FromRgb(220, 220, 220)),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(8),
-                Padding = new Thickness(12),
-                Margin = new Thickness(0, 8, 0, 0),
-                Child = section
-            };
-
+            var border = CreateCardBorder(section);
             hostPanel.Children.Add(border);
             return border;
+        }
+
+        public Border AddCharacteristics(
+            StackPanel hostPanel,
+            DataRow row,
+            string header = "Характеристики товара",
+            params string[] characteristicColumns)
+        {
+            var contentPanel = new StackPanel { Margin = new Thickness(0) };
+            var columns = GetCharacteristicColumns(row.Table, characteristicColumns);
+
+            if (columns.Length == 0)
+            {
+                contentPanel.Children.Add(new TextBlock
+                {
+                    Text = "Характеристики не заполнены.",
+                    Margin = new Thickness(0, 4, 0, 0)
+                });
+            }
+            else
+            {
+                foreach (var column in columns)
+                {
+                    var value = row[column] == DBNull.Value
+                        ? string.Empty
+                        : Convert.ToString(row[column]) ?? string.Empty;
+
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        continue;
+                    }
+
+                    contentPanel.Children.Add(new TextBlock
+                    {
+                        Text = $"• {column}: {value}",
+                        Margin = new Thickness(0, 2, 0, 2),
+                        TextWrapping = TextWrapping.Wrap
+                    });
+                }
+            }
+
+            var section = new StackPanel();
+            section.Children.Add(new TextBlock
+            {
+                Text = header,
+                FontWeight = FontWeights.SemiBold,
+                Margin = new Thickness(0, 0, 0, 8)
+            });
+            section.Children.Add(contentPanel);
+
+            var border = CreateCardBorder(section);
+            hostPanel.Children.Add(border);
+            return border;
+        }
+
+        public void AddCardsFromTable(
+            StackPanel hostPanel,
+            DataTable table,
+            string titleColumn = "name",
+            params string[] characteristicColumns)
+        {
+            hostPanel.Children.Clear();
+
+            foreach (DataRow row in table.Rows)
+            {
+                var title = table.Columns.Contains(titleColumn)
+                    ? Convert.ToString(row[titleColumn]) ?? string.Empty
+                    : "Карточка";
+
+                AddCharacteristics(hostPanel, row, title, characteristicColumns);
+            }
         }
 
         public Border? ToggleCharacteristicsForCard(Button sourceButton, string headerPrefix = "Характеристики: ")
@@ -239,6 +335,45 @@ ORDER BY display_order, id;";
             var border = AddCharacteristics(cardStack, productId, $"{headerPrefix}{productName}");
             border.Tag = tag;
             return border;
+        }
+
+        private static Border CreateCardBorder(UIElement child)
+        {
+            return new Border
+            {
+                BorderBrush = new SolidColorBrush(Color.FromRgb(220, 220, 220)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(12),
+                Margin = new Thickness(0, 8, 0, 0),
+                Child = child
+            };
+        }
+
+        private static string[] GetCharacteristicColumns(DataTable table, string[] characteristicColumns)
+        {
+            if (characteristicColumns.Length > 0)
+            {
+                return characteristicColumns
+                    .Where(table.Columns.Contains)
+                    .ToArray();
+            }
+
+            var skipColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "id",
+                "name",
+                "photo",
+                "img",
+                "Img",
+                "ImgSource"
+            };
+
+            return table.Columns
+                .Cast<DataColumn>()
+                .Select(column => column.ColumnName)
+                .Where(columnName => !skipColumns.Contains(columnName))
+                .ToArray();
         }
 
         private static T? FindParent<T>(DependencyObject child) where T : DependencyObject

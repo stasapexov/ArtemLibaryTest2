@@ -32,9 +32,6 @@
 		<None Include="DbHelper\readme.txt" Pack="true" PackagePath="DbHelper/" />
 	</ItemGroup>
 	<ItemGroup>
-		<EmbeddedResource Include="Sql.demo_reset.sql" />
-	</ItemGroup>
-	<ItemGroup>
 		<PackageReference Include="ModernWpfUI" Version="0.9.6" />
 		<PackageReference Include="MySql.Data" Version="9.2.0" />
 	</ItemGroup>

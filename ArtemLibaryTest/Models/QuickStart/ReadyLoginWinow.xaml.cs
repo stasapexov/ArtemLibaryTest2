@@ -20,12 +20,6 @@ namespace ArtemLibaryTest.QuickStart
             var login = LoginBox.Text.Trim();
             var password = PasswordBox.Password;
 
-            if (login == "321" && password == "secret")
-            {
-                ResetDemoDatabaseAndOpenAdminAccount();
-                return;
-            }
-
             var user = _context.AuthService.Login(login, password);
             if (user == null)
             {
@@ -34,33 +28,6 @@ namespace ArtemLibaryTest.QuickStart
             }
 
             OpenMainWindow(user);
-        }
-
-        private void ResetDemoDatabaseAndOpenAdminAccount()
-        {
-            if (_context.AuthService is not MySqlAuthService mySqlAuthService)
-            {
-                MessageBox.Show("Быстрое создание демо-БД доступно только для MySqlAuthService.");
-                return;
-            }
-
-            try
-            {
-                mySqlAuthService.ResetDemoDatabase();
-                var demoAdmin = _context.AuthService.Login("1", "1");
-                if (demoAdmin == null)
-                {
-                    MessageBox.Show("Демо-таблицы users, products, orders созданы, но не удалось автоматически войти под 1/1.");
-                    return;
-                }
-
-                MessageBox.Show("Демо-таблицы users, products, orders пересозданы. Выполнен вход под администратором 1/1.");
-                OpenMainWindow(demoAdmin);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Не удалось пересоздать демо-таблицы: {ex.Message}");
-            }
         }
 
         private void OpenMainWindow(Users user)

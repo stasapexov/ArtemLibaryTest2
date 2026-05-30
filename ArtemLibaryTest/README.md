@@ -110,3 +110,51 @@ UsersGrid.ItemsSource = db.GetTableWithBlobImage(@"
 </DataGridTemplateColumn>
 ```
 
+
+### Пример 4: Универсальная загрузка `ComboBox`
+
+Метод подходит для категорий, пунктов выдачи, сотрудников и любых справочников. SQL остается обычным и совместимым со старым MySQL.
+
+```csharp
+var db = new DbHelper(DbConfig.ConnectionString);
+
+db.LoadComboBox(
+    CategoryComboBox,
+    "SELECT id, name FROM categories ORDER BY name",
+    displayColumn: "name",
+    valueColumn: "id",
+    firstItemText: "Все категории");
+```
+
+### Пример 5: Карточки характеристик из своего `SELECT`
+
+Сначала пишете обычный SQL-запрос с теми колонками, которые нужно показать:
+
+```csharp
+var db = new DbHelper(DbConfig.ConnectionString);
+
+var products = db.LoadCardTable(@"
+SELECT id, article, name, material, color, dimensions, price
+FROM products
+ORDER BY name;");
+```
+
+Потом передаете результат в WPF-контейнер, например в `StackPanel` с именем `ProductsPanel`:
+
+```csharp
+db.AddCardsFromTable(
+    ProductsPanel,
+    products,
+    "name",
+    "article",
+    "material",
+    "color",
+    "dimensions",
+    "price");
+```
+
+В итоге каждая строка из запроса становится карточкой: заголовок берется из `name`, а характеристики — из перечисленных колонок.
+
+### SQL для демо-БД
+
+`Sql.demo_reset.sql` оставлен как отдельный пример структуры БД. Он не встраивается в сборку библиотеки и не запускается автоматически из кода библиотеки.

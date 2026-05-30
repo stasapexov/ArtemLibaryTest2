@@ -22,20 +22,18 @@ CREATE TABLE IF NOT EXISTS `users` (
   `img` mediumblob NOT NULL,
   `phone` varchar(25) NOT NULL,
   `email` varchar(50) NOT NULL,
-  `city` varchar(100) NOT NULL DEFAULT '',
-  `street` varchar(100) NOT NULL DEFAULT '',
-  `house` varchar(20) NOT NULL DEFAULT '',
+  `address` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `ux_users_login` (`login`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `users` 
-(`id`, `login`, `password`, `name`, `status`, `money`, `img`, `phone`, `email`, `city`, `street`, `house`)
+(`id`, `login`, `password`, `name`, `status`, `money`, `img`, `phone`, `email`, `address`)
 VALUES
-  (1, 'artem', '12345', 'Artem', 'admin', 50000.00, '', '+79990000001', 'admin@furniture-shop.local', 'Moscow', 'Pushkina', '1'),
-  (49, '1', '1', 'Artem', 'admin', 50000.00, '', '+79990000002', 'admin.demo@furniture-shop.local', 'Moscow', 'Pushkina', '1'),
-  (50, '2', '2', 'Artem', 'manager', 30000.00, '', '+79990000003', 'manager@furniture-shop.local', 'Moscow', 'Pushkina', '7'),
-  (51, '3', '3', 'Artem', 'user', 120000.00, '', '+79990000004', 'user@furniture-shop.local', 'Moscow', 'Pushkina', '12');
+  (1, 'artem', '12345', 'Artem', 'admin', 50000.00, '', '+79990000001', 'admin@furniture-shop.local', 'Moscow, Pushkina, 1'),
+  (49, '1', '1', 'Artem', 'admin', 50000.00, '', '+79990000002', 'admin.demo@furniture-shop.local', 'Moscow, Pushkina, 1'),
+  (50, '2', '2', 'Artem', 'manager', 30000.00, '', '+79990000003', 'manager@furniture-shop.local', 'Moscow, Pushkina, 7'),
+  (51, '3', '3', 'Artem', 'user', 120000.00, '', '+79990000004', 'user@furniture-shop.local', 'Moscow, Pushkina, 12');
 
 CREATE TABLE IF NOT EXISTS `categories` (
   `id` int NOT NULL AUTO_INCREMENT,
