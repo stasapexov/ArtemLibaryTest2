@@ -10,19 +10,25 @@
         </Grid.RowDefinitions>
 
         <DockPanel Grid.Row="0">
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
-                <Button Content="Обновить" Click="Refresh_Click" Width="100" Margin="0,0,6,0" />
-                <ComboBox x:Name="ReadinessComboBox" Width="150" Margin="0,0,6,0">
+            <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                <TextBox x:Name="ProductNameTextBox" Width="150" Margin="0,0,6,6" ToolTip="Название товара" />
+                <TextBox x:Name="MinPriceTextBox" Width="90" Margin="0,0,6,6" ToolTip="Цена от" />
+                <TextBox x:Name="MaxPriceTextBox" Width="90" Margin="0,0,6,6" ToolTip="Цена до" />
+                <TextBox x:Name="DateTextBox" Width="110" Margin="0,0,6,6" ToolTip="Дата: yyyy-mm-dd" />
+                <Button Content="Фильтр" Click="Filter_Click" Width="90" Margin="0,0,6,6" />
+                <Button Content="Сброс" Click="ResetFilter_Click" Width="90" Margin="0,0,6,6" />
+                <Button Content="Обновить" Click="Refresh_Click" Width="100" Margin="0,0,6,6" />
+                <ComboBox x:Name="ReadinessComboBox" Width="150" Margin="0,0,6,6">
                     <ComboBoxItem Content="New" IsSelected="True" />
                     <ComboBoxItem Content="InProgress" />
                     <ComboBoxItem Content="Ready" />
                     <ComboBoxItem Content="Done" />
                     <ComboBoxItem Content="Canceled" />
                 </ComboBox>
-                <Button Content="Сменить статус" Click="SaveStatus_Click" Width="130" Margin="0,0,6,0" />
-                <Button Content="Удалить заказ" Click="DeleteOrder_Click" Width="120" />
-                <TextBlock x:Name="OrdersInfoTextBlock" Margin="12,6,0,0" FontWeight="Bold" />
-            </StackPanel>
+                <Button Content="Сменить статус" Click="SaveStatus_Click" Width="130" Margin="0,0,6,6" />
+                <Button Content="Удалить заказ" Click="DeleteOrder_Click" Width="120" Margin="0,0,6,6" />
+                <TextBlock x:Name="OrdersInfoTextBlock" Margin="12,4,0,0" FontWeight="Bold" />
+            </WrapPanel>
             <DataGrid x:Name="OrdersGrid" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="№" Binding="{Binding order_id}" Width="55" />

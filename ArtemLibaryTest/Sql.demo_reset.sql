@@ -1,6 +1,8 @@
 SET NAMES utf8;
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP VIEW IF EXISTS `v_admin_orders`;
+DROP VIEW IF EXISTS `v_user_orders`;
 DROP VIEW IF EXISTS `v_orders`;
 DROP VIEW IF EXISTS `v_products`;
 DROP VIEW IF EXISTS `v_categories`;
@@ -51,8 +53,6 @@ CREATE TABLE IF NOT EXISTS `products` (
   `quantity` int NOT NULL DEFAULT 0,
   `price` decimal(10,2) NOT NULL DEFAULT 0,
   `photo` varchar(100) NOT NULL DEFAULT 'default.png',
-  `material` varchar(120) NOT NULL DEFAULT '',
-  `color` varchar(80) NOT NULL DEFAULT '',
   `dimensions` varchar(80) NOT NULL DEFAULT '',
   `description` varchar(500) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
@@ -83,8 +83,6 @@ CREATE TABLE IF NOT EXISTS `orders` (
   `product_id` int NOT NULL,
   `product_name` varchar(100) NOT NULL,
   `product_photo` varchar(100) NOT NULL DEFAULT 'default.png',
-  `product_material` varchar(120) NOT NULL DEFAULT '',
-  `product_color` varchar(80) NOT NULL DEFAULT '',
   `product_dimensions` varchar(80) NOT NULL DEFAULT '',
   `quantity` int NOT NULL DEFAULT 1,
   `unit_price` decimal(10,2) NOT NULL DEFAULT 0,
@@ -132,8 +130,6 @@ SELECT
   products.quantity,
   products.price,
   products.photo,
-  products.material,
-  products.color,
   products.dimensions,
   products.description
 FROM products
@@ -141,21 +137,59 @@ LEFT JOIN categories ON categories.id = products.category_id;
 
 CREATE VIEW `v_orders` AS
 SELECT
-  orders.id,
-  orders.date,
+  orders.id AS order_id,
+  orders.date AS order_date,
   orders.user_id,
-  users.login,
+  users.login AS user_login,
   users.name AS user_name,
   orders.product_id,
   orders.product_name,
   orders.product_photo,
-  orders.product_material,
-  orders.product_color,
   orders.product_dimensions,
   orders.quantity,
   orders.unit_price,
   orders.total_price,
-  orders.readiness
+  orders.readiness,
+  orders.pickup_point_id,
+  orders.pickup_address,
+  orders.pickup_code
+FROM orders
+INNER JOIN users ON users.id = orders.user_id;
+
+CREATE VIEW `v_user_orders` AS
+SELECT
+  orders.id AS order_id,
+  orders.date AS order_date,
+  orders.user_id,
+  orders.product_id,
+  orders.product_name,
+  orders.product_photo,
+  orders.product_dimensions,
+  orders.quantity,
+  orders.unit_price,
+  orders.total_price,
+  orders.readiness,
+  orders.pickup_address,
+  orders.pickup_code
+FROM orders;
+
+CREATE VIEW `v_admin_orders` AS
+SELECT
+  orders.id AS order_id,
+  orders.date AS order_date,
+  orders.user_id,
+  users.login AS user_login,
+  users.name AS user_name,
+  orders.product_id,
+  orders.product_name,
+  orders.product_photo,
+  orders.product_dimensions,
+  orders.quantity,
+  orders.unit_price,
+  orders.total_price,
+  orders.readiness,
+  orders.pickup_address,
+  orders.pickup_code
 FROM orders
 INNER JOIN users ON users.id = orders.user_id;
 
