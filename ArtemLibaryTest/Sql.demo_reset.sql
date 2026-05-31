@@ -1,6 +1,9 @@
 SET NAMES utf8;
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP VIEW IF EXISTS `v_orders`;
+DROP VIEW IF EXISTS `v_products`;
+DROP VIEW IF EXISTS `v_categories`;
 
 DROP TABLE IF EXISTS `employees`;
 DROP TABLE IF EXISTS `orders`;
@@ -48,6 +51,8 @@ CREATE TABLE IF NOT EXISTS `products` (
   `quantity` int NOT NULL DEFAULT 0,
   `price` decimal(10,2) NOT NULL DEFAULT 0,
   `photo` varchar(100) NOT NULL DEFAULT 'default.png',
+  `material` varchar(120) NOT NULL DEFAULT '',
+  `color` varchar(80) NOT NULL DEFAULT '',
   `dimensions` varchar(80) NOT NULL DEFAULT '',
   `description` varchar(500) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
@@ -77,6 +82,10 @@ CREATE TABLE IF NOT EXISTS `orders` (
   `user_id` int NOT NULL,
   `product_id` int NOT NULL,
   `product_name` varchar(100) NOT NULL,
+  `product_photo` varchar(100) NOT NULL DEFAULT 'default.png',
+  `product_material` varchar(120) NOT NULL DEFAULT '',
+  `product_color` varchar(80) NOT NULL DEFAULT '',
+  `product_dimensions` varchar(80) NOT NULL DEFAULT '',
   `quantity` int NOT NULL DEFAULT 1,
   `unit_price` decimal(10,2) NOT NULL DEFAULT 0,
   `total_price` decimal(10,2) NOT NULL DEFAULT 0,
@@ -107,6 +116,48 @@ CREATE TABLE IF NOT EXISTS `orders` (
     ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
+
+CREATE VIEW `v_categories` AS
+SELECT
+  id,
+  name
+FROM categories;
+
+CREATE VIEW `v_products` AS
+SELECT
+  products.id,
+  products.name,
+  products.category_id,
+  categories.name AS category_name,
+  products.quantity,
+  products.price,
+  products.photo,
+  products.material,
+  products.color,
+  products.dimensions,
+  products.description
+FROM products
+LEFT JOIN categories ON categories.id = products.category_id;
+
+CREATE VIEW `v_orders` AS
+SELECT
+  orders.id,
+  orders.date,
+  orders.user_id,
+  users.login,
+  users.name AS user_name,
+  orders.product_id,
+  orders.product_name,
+  orders.product_photo,
+  orders.product_material,
+  orders.product_color,
+  orders.product_dimensions,
+  orders.quantity,
+  orders.unit_price,
+  orders.total_price,
+  orders.readiness
+FROM orders
+INNER JOIN users ON users.id = orders.user_id;
 
 CREATE TABLE IF NOT EXISTS `employees` (
   `id` int NOT NULL AUTO_INCREMENT,

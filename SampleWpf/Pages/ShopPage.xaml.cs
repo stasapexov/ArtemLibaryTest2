@@ -36,7 +36,8 @@ public partial class ShopPage : Page
     private void LoadData(double? min = null, double? max = null, string name = "")
     {
         var sql = new StringBuilder(@"
-SELECT p.id, p.name, c.name AS category_name, p.quantity, p.price, p.photo
+SELECT p.id, p.name, c.name AS category_name, p.quantity, p.price, p.photo,
+       p.material, p.color, p.dimensions
 FROM products p
 LEFT JOIN categories c ON c.id = p.category_id
 WHERE 1=1");
@@ -114,16 +115,20 @@ WHERE 1=1");
         {
             using var insertOrder = new MySqlCommand(@"
 INSERT INTO orders
-(date, user_id, product_id, product_name,
+(date, user_id, product_id, product_name, product_photo, product_material, product_color, product_dimensions,
  quantity, unit_price, total_price, readiness, pickup_point_id, pickup_address, pickup_code)
 VALUES
-(CURDATE(), @user_id, @product_id, @product_name,
+(CURDATE(), @user_id, @product_id, @product_name, @product_photo, @product_material, @product_color, @product_dimensions,
  @quantity, @unit_price, @total_price, 'New', @pickup_point_id, @pickup_address, @pickup_code);", connection, transaction);
             insertOrder.Parameters.AddRange(new MySqlParameter[]
             {
                 DbHelper.Param("@user_id", userId),
                 DbHelper.Param("@product_id", productId),
                 DbHelper.Param("@product_name", Convert.ToString(row["name"]) ?? string.Empty),
+                DbHelper.Param("@product_photo", Convert.ToString(row["photo"]) ?? string.Empty),
+                DbHelper.Param("@product_material", Convert.ToString(row["material"]) ?? string.Empty),
+                DbHelper.Param("@product_color", Convert.ToString(row["color"]) ?? string.Empty),
+                DbHelper.Param("@product_dimensions", Convert.ToString(row["dimensions"]) ?? string.Empty),
                 DbHelper.Param("@quantity", count),
                 DbHelper.Param("@unit_price", price),
                 DbHelper.Param("@total_price", totalPrice),
