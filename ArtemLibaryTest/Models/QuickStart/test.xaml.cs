@@ -15,9 +15,6 @@ using System.Windows.Shapes;
 
 namespace ArtemLibaryTest.Models.QuickStart
 {
-    /// <summary>
-    /// Логика взаимодействия для test.xaml
-    /// </summary>
     public partial class test : Window
     {
         private readonly AuthUiContext _context;

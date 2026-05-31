@@ -15,9 +15,6 @@ using System.Windows.Shapes;
 
 namespace ArtemLibaryTest.Models.QuickStart
 {
-    /// <summary>
-    /// Логика взаимодействия для UserProfileWindow.xaml
-    /// </summary>
 
         public partial class UserProfileWindow : Window
         {

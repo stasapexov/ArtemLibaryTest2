@@ -1,14 +1,9 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
-using ArtemLibaryTest;
+﻿using System.Windows;
 using ArtemLibaryTest.Core;
 using ArtemLibaryTest.QuickStart;
+
 namespace SampleWpf
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
     public partial class App : Application
     {
         protected override void OnStartup(StartupEventArgs e)
@@ -19,12 +14,12 @@ namespace SampleWpf
             var options = new AuthUiOptions
             {
                 AppTitle = "Exam Demo",
-                MainWelcomeText = "Готовое главное меню из библиотеки"
+                MainWelcomeText = "Готовое главное меню из библиотеки",
+                MenuProvider = new SampleMenuProvider()
             };
 
             var loginWindow = AuthUiLauncher.CreateLoginWindow(authService, options);
             loginWindow.Show();
         }
     }
-
 }

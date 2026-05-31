@@ -18,6 +18,8 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Version>1.5</Version>
 		<Description>Библиотека для Демо Экзамена C#/Wpf/ModernWpfUi/MySql</Description>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);1591</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -29,7 +31,7 @@
 	<ItemGroup>
 		<None Include="README.md" Pack="true" PackagePath="" />
 		<None Include="readme.txt" Pack="true" PackagePath="." />
-		<None Include="DbHelper\readme.txt" Pack="true" PackagePath="DbHelper/" />
+		<None Include="Dbhelper\readme.txt" Pack="true" PackagePath="Dbhelper/" />
 	</ItemGroup>
 	<ItemGroup>
 		<EmbeddedResource Include="Sql.demo_reset.sql" />
