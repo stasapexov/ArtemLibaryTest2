@@ -6,15 +6,24 @@ using MySql.Data.MySqlClient;
 
 namespace ArtemLibaryTest.Core
 {
+    /// <summary>
+    /// Реализация IAuthService для MySQL: вход, регистрация, профиль, аватар и сброс демонстрационной базы.
+    /// </summary>
     public class MySqlAuthService : IAuthService
     {
         private readonly DbHelper _db;
 
+        /// <summary>
+        /// Создаёт сервис авторизации по строке подключения MySQL.
+        /// </summary>
         public MySqlAuthService(string connectionString)
         {
             _db = new DbHelper(connectionString);
         }
 
+        /// <summary>
+        /// Ищет пользователя по логину и паролю в таблице users.
+        /// </summary>
         public Users? Login(string login, string password)
         {
             EnsureUsersEmailColumn();
@@ -52,6 +61,9 @@ LIMIT 1;";
                 row["img"] == DBNull.Value ? [] : (byte[])row["img"]);
         }
 
+        /// <summary>
+        /// Выполняет встроенный SQL-скрипт восстановления демонстрационной базы.
+        /// </summary>
         public void ResetDemoDatabase()
         {
             ExecuteEmbeddedSqlScript("ArtemLibaryTest.Sql.demo_reset.sql");
@@ -117,6 +129,9 @@ LIMIT 1;";
             }
         }
 
+        /// <summary>
+        /// Создаёт пользователя со статусом user и начальным балансом 0.
+        /// </summary>
         public bool Register(string login, string password, string name, string phone, string email = "")
         {
             EnsureUsersImgColumn();
@@ -151,6 +166,9 @@ VALUES (@name, @password, @login, @phone, @status, @money, @img);";
                 DbHelper.Param("@email", email)) > 0;
         }
 
+        /// <summary>
+        /// Пополняет баланс пользователя после проверки его пароля.
+        /// </summary>
         public bool TopUpUserMoney(int userId, string userPassword, double amount)
         {
             if (amount <= 0)
@@ -202,6 +220,9 @@ LIMIT 1;";
             _db.ExecuteNonQuery("ALTER TABLE `users` MODIFY COLUMN `img` MEDIUMBLOB NOT NULL;");
         }
 
+        /// <summary>
+        /// Обновляет логин, пароль, телефон и email пользователя.
+        /// </summary>
         public bool UpdateProfile(int userId, string login, string password, string phone, string email)
         {
             var hasEmailColumn = EnsureUsersEmailColumn();
@@ -268,6 +289,9 @@ WHERE TABLE_SCHEMA = DATABASE()
             return Convert.ToString(row[columnName]) ?? string.Empty;
         }
 
+        /// <summary>
+        /// Обновляет BLOB-аватар пользователя в колонке img.
+        /// </summary>
         public bool UpdateAvatar(int userId, byte[] imageBytes)
         {
             EnsureUsersImgColumn();
