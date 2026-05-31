@@ -25,9 +25,9 @@ public partial class ShopPage : Page
         _db.LoadCategoriesToComboBox(CategoryComboBox);
         _db.LoadComboBox(
             PickupPointComboBox,
-            @"SELECT id, CONCAT(name, ' — ', city, ', ', street, ' ', house) AS address
+            @"SELECT id, CONCAT(name, ' — ', address) AS address
               FROM pickup_points
-              ORDER BY city, street, house, name",
+              ORDER BY address, name",
             "address",
             "id",
             "Выберите пункт выдачи");
@@ -36,8 +36,7 @@ public partial class ShopPage : Page
     private void LoadData(double? min = null, double? max = null, string name = "")
     {
         var sql = new StringBuilder(@"
-SELECT p.id, p.name, c.name AS category_name, p.quantity, p.price, p.photo,
-       p.material, p.color, p.dimensions
+SELECT p.id, p.name, c.name AS category_name, p.quantity, p.price, p.photo
 FROM products p
 LEFT JOIN categories c ON c.id = p.category_id
 WHERE 1=1");
@@ -115,19 +114,16 @@ WHERE 1=1");
         {
             using var insertOrder = new MySqlCommand(@"
 INSERT INTO orders
-(date, user_id, product_id, product_name, product_material, product_color, product_dimensions,
+(date, user_id, product_id, product_name,
  quantity, unit_price, total_price, readiness, pickup_point_id, pickup_address, pickup_code)
 VALUES
-(CURDATE(), @user_id, @product_id, @product_name, @product_material, @product_color, @product_dimensions,
+(CURDATE(), @user_id, @product_id, @product_name,
  @quantity, @unit_price, @total_price, 'New', @pickup_point_id, @pickup_address, @pickup_code);", connection, transaction);
             insertOrder.Parameters.AddRange(new MySqlParameter[]
             {
                 DbHelper.Param("@user_id", userId),
                 DbHelper.Param("@product_id", productId),
                 DbHelper.Param("@product_name", Convert.ToString(row["name"]) ?? string.Empty),
-                DbHelper.Param("@product_material", Convert.ToString(row["material"]) ?? string.Empty),
-                DbHelper.Param("@product_color", Convert.ToString(row["color"]) ?? string.Empty),
-                DbHelper.Param("@product_dimensions", Convert.ToString(row["dimensions"]) ?? string.Empty),
                 DbHelper.Param("@quantity", count),
                 DbHelper.Param("@unit_price", price),
                 DbHelper.Param("@total_price", totalPrice),

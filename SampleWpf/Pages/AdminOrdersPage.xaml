@@ -45,9 +45,7 @@
                 <TextBlock Text="Пункты выдачи" FontSize="16" FontWeight="Bold" Margin="0,0,0,6" />
                 <WrapPanel>
                     <TextBox x:Name="PickupNameTextBox" Width="130" Margin="0,0,6,6" ToolTip="Название" />
-                    <TextBox x:Name="PickupCityTextBox" Width="120" Margin="0,0,6,6" ToolTip="Город" />
-                    <TextBox x:Name="PickupStreetTextBox" Width="160" Margin="0,0,6,6" ToolTip="Улица" />
-                    <TextBox x:Name="PickupHouseTextBox" Width="70" Margin="0,0,6,6" ToolTip="Дом" />
+                    <TextBox x:Name="PickupAddressTextBox" Width="280" Margin="0,0,6,6" ToolTip="Адрес" />
                     <TextBox x:Name="PickupPhoneTextBox" Width="120" Margin="0,0,6,6" ToolTip="Телефон" />
                     <TextBox x:Name="PickupHoursTextBox" Width="130" Margin="0,0,6,6" ToolTip="Часы работы" />
                     <Button Content="Добавить" Click="AddPickupPoint_Click" Width="90" Margin="0,0,6,6" />
@@ -58,9 +56,7 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="№" Binding="{Binding id}" Width="50" />
                     <DataGridTextColumn Header="Название" Binding="{Binding name}" Width="150" />
-                    <DataGridTextColumn Header="Город" Binding="{Binding city}" Width="120" />
-                    <DataGridTextColumn Header="Улица" Binding="{Binding street}" Width="150" />
-                    <DataGridTextColumn Header="Дом" Binding="{Binding house}" Width="70" />
+                    <DataGridTextColumn Header="Адрес" Binding="{Binding address}" Width="260" />
                     <DataGridTextColumn Header="Телефон" Binding="{Binding phone}" Width="120" />
                     <DataGridTextColumn Header="Часы" Binding="{Binding working_hours}" Width="*" />
                 </DataGrid.Columns>

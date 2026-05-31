@@ -41,9 +41,9 @@ ORDER BY o.id DESC");
     private void LoadPickupPoints()
     {
         var table = _db.GetTable(@"
-SELECT id, name, city, street, house, phone, working_hours
+SELECT id, name, address, phone, working_hours
 FROM pickup_points
-ORDER BY city, street, house, name");
+ORDER BY address, name");
         PickupPointsGrid.ItemsSource = table.DefaultView;
     }
 
@@ -117,21 +117,17 @@ WHERE o.id = @order_id",
     private void AddPickupPoint_Click(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(PickupNameTextBox.Text) ||
-            string.IsNullOrWhiteSpace(PickupCityTextBox.Text) ||
-            string.IsNullOrWhiteSpace(PickupStreetTextBox.Text) ||
-            string.IsNullOrWhiteSpace(PickupHouseTextBox.Text))
+            string.IsNullOrWhiteSpace(PickupAddressTextBox.Text))
         {
-            MessageBox.Show("Заполните название, город, улицу и дом пункта выдачи.");
+            MessageBox.Show("Заполните название и адрес пункта выдачи.");
             return;
         }
 
         _db.ExecuteNonQuery(@"
-INSERT INTO pickup_points (name, city, street, house, phone, working_hours)
-VALUES (@name, @city, @street, @house, @phone, @working_hours)",
+INSERT INTO pickup_points (name, address, phone, working_hours)
+VALUES (@name, @address, @phone, @working_hours)",
             DbHelper.Param("@name", PickupNameTextBox.Text.Trim()),
-            DbHelper.Param("@city", PickupCityTextBox.Text.Trim()),
-            DbHelper.Param("@street", PickupStreetTextBox.Text.Trim()),
-            DbHelper.Param("@house", PickupHouseTextBox.Text.Trim()),
+            DbHelper.Param("@address", PickupAddressTextBox.Text.Trim()),
             DbHelper.Param("@phone", PickupPhoneTextBox.Text.Trim()),
             DbHelper.Param("@working_hours", PickupHoursTextBox.Text.Trim()));
 
@@ -170,9 +166,7 @@ VALUES (@name, @city, @street, @house, @phone, @working_hours)",
     private void ClearPickupPointForm()
     {
         PickupNameTextBox.Clear();
-        PickupCityTextBox.Clear();
-        PickupStreetTextBox.Clear();
-        PickupHouseTextBox.Clear();
+        PickupAddressTextBox.Clear();
         PickupPhoneTextBox.Clear();
         PickupHoursTextBox.Clear();
     }
