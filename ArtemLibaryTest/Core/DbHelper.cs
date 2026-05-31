@@ -70,6 +70,7 @@ namespace ArtemLibaryTest.Core
 
             return table;
         }
+
         public DataTable GetTableWithBlobImage(string sql, params MySqlParameter[] parameters)
         {
             return GetTableWithBlobImage(sql, "img", "ImgSource", parameters);
@@ -102,15 +103,30 @@ namespace ArtemLibaryTest.Core
         {
             return new MySqlParameter(name, value ?? DBNull.Value);
         }
+
         public static void AddWhereEqualsFromComboBox(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, object? selectedValue)
         {
-            if (selectedValue == null || selectedValue == DBNull.Value)
+            selectedValue = NormalizeComboBoxSelectedValue(selectedValue);
+
+            if (selectedValue == null)
             {
                 return;
             }
 
             sql.Append($" AND {column} = {parameterName}");
             parameters.Add(Param(parameterName, selectedValue));
+        }
+
+        public static void AddWhereEqualsFromComboBox(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, ComboBox comboBox)
+        {
+            var selectedValue = NormalizeComboBoxSelectedValue(comboBox.SelectedValue);
+
+            if (selectedValue == null && comboBox.SelectedItem is DataRowView rowView)
+            {
+                selectedValue = GetComboBoxValueFromRow(comboBox, rowView);
+            }
+
+            AddWhereEqualsFromComboBox(sql, parameters, column, parameterName, selectedValue);
         }
 
         public void LoadComboBox(
@@ -123,19 +139,27 @@ namespace ArtemLibaryTest.Core
         {
             var table = GetTable(sql, parameters);
 
-            if (!string.IsNullOrWhiteSpace(firstItemText) &&
-                table.Columns.Contains(displayColumn) &&
-                table.Columns.Contains(valueColumn))
+            if (table.Columns.Count == 0)
+            {
+                comboBox.ItemsSource = null;
+                comboBox.SelectedIndex = -1;
+                return;
+            }
+
+            var actualDisplayColumn = FindColumnName(table, displayColumn) ?? table.Columns[0].ColumnName;
+            var actualValueColumn = FindColumnName(table, valueColumn) ?? table.Columns[0].ColumnName;
+
+            if (!string.IsNullOrWhiteSpace(firstItemText))
             {
                 var firstRow = table.NewRow();
-                firstRow[valueColumn] = DBNull.Value;
-                firstRow[displayColumn] = firstItemText;
+                firstRow[actualValueColumn] = DBNull.Value;
+                firstRow[actualDisplayColumn] = firstItemText;
                 table.Rows.InsertAt(firstRow, 0);
             }
 
             comboBox.ItemsSource = table.DefaultView;
-            comboBox.DisplayMemberPath = displayColumn;
-            comboBox.SelectedValuePath = valueColumn;
+            comboBox.DisplayMemberPath = actualDisplayColumn;
+            comboBox.SelectedValuePath = actualValueColumn;
             comboBox.SelectedIndex = table.Rows.Count > 0 ? 0 : -1;
         }
 
@@ -166,22 +190,56 @@ namespace ArtemLibaryTest.Core
             comboBox.SelectedIndex = -1;
         }
 
+        private static object? NormalizeComboBoxSelectedValue(object? selectedValue)
+        {
+            if (selectedValue == null ||
+                selectedValue == DBNull.Value ||
+                selectedValue == DependencyProperty.UnsetValue ||
+                (selectedValue is string text && string.IsNullOrWhiteSpace(text)))
+            {
+                return null;
+            }
+
+            return selectedValue;
+        }
+
+        private static object? GetComboBoxValueFromRow(ComboBox comboBox, DataRowView rowView)
+        {
+            var valueColumn = string.IsNullOrWhiteSpace(comboBox.SelectedValuePath)
+                ? null
+                : comboBox.SelectedValuePath;
+
+            if (valueColumn != null && rowView.Row.Table.Columns.Contains(valueColumn))
+            {
+                return NormalizeComboBoxSelectedValue(rowView[valueColumn]);
+            }
+
+            return rowView.Row.ItemArray
+                .Select(NormalizeComboBoxSelectedValue)
+                .FirstOrDefault(value => value != null);
+        }
+
+        private static string? FindColumnName(DataTable table, string columnName)
+        {
+            if (table.Columns.Contains(columnName))
+            {
+                return columnName;
+            }
+
+            return table.Columns
+                .Cast<DataColumn>()
+                .FirstOrDefault(column => column.ColumnName.Equals(columnName, StringComparison.OrdinalIgnoreCase))
+                ?.ColumnName;
+        }
+
         public DataTable GetProductCharacteristics(int productId)
         {
             const string sql = @"
-SELECT 1 AS id, id AS product_id, 'Материал' AS name, material AS value, 1 AS display_order
-FROM products
-WHERE id = @productId AND material <> ''
-UNION ALL
-SELECT 2 AS id, id AS product_id, 'Цвет' AS name, color AS value, 2 AS display_order
-FROM products
-WHERE id = @productId AND color <> ''
-UNION ALL
-SELECT 3 AS id, id AS product_id, 'Размеры' AS name, dimensions AS value, 3 AS display_order
+SELECT 1 AS id, id AS product_id, 'Размеры' AS name, dimensions AS value, 1 AS display_order
 FROM products
 WHERE id = @productId AND dimensions <> ''
 UNION ALL
-SELECT 4 AS id, id AS product_id, 'Описание' AS name, description AS value, 4 AS display_order
+SELECT 2 AS id, id AS product_id, 'Описание' AS name, description AS value, 2 AS display_order
 FROM products
 WHERE id = @productId AND description <> ''
 ORDER BY display_order, id;";
@@ -436,6 +494,7 @@ ORDER BY display_order, id;";
             sql.Append($" AND {column} LIKE {parameterName}");
             parameters.Add(Param(parameterName, $"%{value.Trim()}%"));
         }
+
         public static void AddWhereLikeAnyWord(StringBuilder sql, List<MySqlParameter> parameters, string column, string parameterName, string? value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -490,6 +549,7 @@ ORDER BY display_order, id;";
                 row[imagePathColumn] = Path.Combine(imagesRoot, string.IsNullOrWhiteSpace(fileName) ? "default.png" : fileName);
             }
         }
+
         public static void AddBlobImageColumn(
             DataTable table,
             string blobColumn = "img",

@@ -87,6 +87,33 @@ var db = new DbHelper(DbConfig.ConnectionString);
 db.LoadCategoriesToComboBox(CategoryComboBox);
 ```
 
+Если `ComboBox` используется как фильтр товаров, сначала загрузите категории, а потом товары.
+Для верхней границы цены используйте `AddWhereMax`, не второй `AddWhereMin`:
+
+```csharp
+private void LoadCombo()
+{
+    _db.LoadCategoriesToComboBox(ComboData);
+}
+
+private void LoadData(double? min = null, double? max = null, string name = "")
+{
+    var sql = new StringBuilder(@"
+SELECT p.id, p.name, c.name AS category_name, p.quantity, p.price, p.photo
+FROM products p
+LEFT JOIN categories c ON c.id = p.category_id
+WHERE 1=1");
+
+    var parameters = new List<MySqlParameter>();
+    DbHelper.AddWhereMin(sql, parameters, "p.price", "@min", min);
+    DbHelper.AddWhereMax(sql, parameters, "p.price", "@max", max);
+    DbHelper.AddWhereLikeAnyWord(sql, parameters, "p.name", "@name", name);
+    DbHelper.AddWhereEqualsFromComboBox(sql, parameters, "p.category_id", "@category", ComboData);
+
+    ItemsData.ItemsSource = _db.GetTableWithImagePath(sql.ToString(), parameters.ToArray()).DefaultView;
+}
+```
+
 ### Пример 3: Вывод BLOB-аватарок из MySQL
 
 ```csharp
