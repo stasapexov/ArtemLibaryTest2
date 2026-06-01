@@ -26,14 +26,7 @@ namespace ArtemLibaryTest.QuickStart
                 return;
             }
 
-            var user = _context.AuthService.Login(login, password);
-            if (user == null)
-            {
-                MessageBox.Show("Неверный логин или пароль");
-                return;
-            }
-
-            OpenMainWindow(user);
+            AuthUiLauncher.TryLoginAndOpenMain(_context, LoginBox, PasswordBox, this);
         }
 
         private void ResetDemoDatabaseAndOpenAdminAccount()
@@ -65,22 +58,19 @@ namespace ArtemLibaryTest.QuickStart
 
         private void OpenMainWindow(Users user)
         {
-            Session.CurrentUser = user;
-            new ReadyMainWindow(_context).Show();
-            Close();
+            AuthUiLauncher.OpenMainWindow(_context, user, this);
         }
 
         private void GuestLogin_Click(object sender, RoutedEventArgs e)
         {
             Session.LoginAsGuest();
-            new ReadyMainWindow(_context).Show();
+            AuthUiLauncher.CreateMainWindow(_context).Show();
             Close();
         }
 
         private void GoToRegister_Click(object sender, RoutedEventArgs e)
         {
-            new ReadyRegisterWindow(_context).Show();
-            Close();
+            AuthUiLauncher.OpenRegisterWindow(_context, this);
         }
     }
 }

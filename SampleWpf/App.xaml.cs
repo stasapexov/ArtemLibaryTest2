@@ -19,7 +19,9 @@ namespace SampleWpf
             var options = new AuthUiOptions
             {
                 AppTitle = "Exam Demo",
-                MainWelcomeText = "Готовое главное меню из библиотеки"
+                MainWelcomeText = "Готовое главное меню из библиотеки",
+                LoginWindowFactory = context => new CustomLoginWindow(context),
+                RegisterWindowFactory = context => new CustomRegisterWindow(context)
             };
 
             var loginWindow = AuthUiLauncher.CreateLoginWindow(authService, options);

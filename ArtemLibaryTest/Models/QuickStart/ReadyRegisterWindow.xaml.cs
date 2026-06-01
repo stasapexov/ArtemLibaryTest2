@@ -16,27 +16,11 @@ namespace ArtemLibaryTest.QuickStart
 
         private void Register_Click(object sender, RoutedEventArgs e)
         {
-            var success = _context.AuthService.Register(
-                LoginBox.Text.Trim(),
-                PasswordBox.Password,
-                NameBox.Text.Trim(),
-                PhoneBox.Text.Trim(),
-                EmailBox.Text.Trim());
-
-            if (!success)
-            {
-                MessageBox.Show("Логин уже занят");
-                return;
-            }
-
-            MessageBox.Show("Регистрация успешна");
-            new ReadyLoginWindow(_context).Show();
-            Close();
+            AuthUiLauncher.TryRegisterAndOpenLogin(_context, LoginBox, PasswordBox, NameBox, PhoneBox, EmailBox, this);
         }
         private void GoToRegister_Click(object sender, RoutedEventArgs e)
         {
-            new ReadyLoginWindow(_context).Show();
-            Close();
+            AuthUiLauncher.OpenLoginWindow(_context, this);
         }
     }
 }

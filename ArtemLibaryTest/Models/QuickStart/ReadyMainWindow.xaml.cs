@@ -138,9 +138,7 @@ namespace ArtemLibaryTest.QuickStart
         private void Logout_Click(object sender, RoutedEventArgs e)
         {
             Session.Logout();
-            var loginWindow = new ReadyLoginWindow(_context);
-            loginWindow.Show();
-            Close();
+            AuthUiLauncher.OpenLoginWindow(_context, this);
         }
 
         private void OpenProfile_Click(object sender, RoutedEventArgs e)

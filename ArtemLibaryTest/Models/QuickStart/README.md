@@ -61,6 +61,67 @@ protected override void OnStartup(StartupEventArgs e)
 }
 ```
 
+
+### 4) Замените встроенные окна входа/регистрации своими
+
+Если нужно оставить готовую авторизацию, сессию и главное меню библиотеки, но нарисовать свои WPF-окна в проекте-потребителе, задайте фабрики в `AuthUiOptions`:
+
+```csharp
+var authService = new MySqlAuthService(DbConfig.ConnectionString);
+var options = new AuthUiOptions
+{
+    AppTitle = "Exam Demo",
+    MainWelcomeText = "Готовое главное меню из библиотеки",
+    LoginWindowFactory = context => new MyLoginWindow(context),
+    RegisterWindowFactory = context => new MyRegisterWindow(context)
+};
+
+AuthUiLauncher.CreateLoginWindow(authService, options).Show();
+```
+
+В своем окне входа сохраните `AuthUiContext`, а в обработчике кнопки передайте `TextBox` логина и `PasswordBox`/`TextBox` пароля. Метод сам возьмет текст из контролов, выполнит проверку через `IAuthService.Login`, заполнит `Session.CurrentUser` и откроет встроенное главное меню:
+
+```csharp
+public partial class MyLoginWindow : Window
+{
+    private readonly AuthUiContext _context;
+
+    public MyLoginWindow(AuthUiContext context)
+    {
+        InitializeComponent();
+        _context = context;
+    }
+
+    private void LoginButton_Click(object sender, RoutedEventArgs e)
+    {
+        AuthUiLauncher.TryLoginAndOpenMain(_context, LoginBox, PasswordBox, this);
+    }
+
+    private void RegisterButton_Click(object sender, RoutedEventArgs e)
+    {
+        AuthUiLauncher.OpenRegisterWindow(_context, this);
+    }
+}
+```
+
+В своем окне регистрации используйте аналогичный helper. Он берет данные из `TextBox`/`PasswordBox`, вызывает `IAuthService.Register`, показывает стандартные сообщения и после успешной регистрации открывает окно входа — встроенное или ваше, если задан `LoginWindowFactory`:
+
+```csharp
+private void RegisterButton_Click(object sender, RoutedEventArgs e)
+{
+    AuthUiLauncher.TryRegisterAndOpenLogin(
+        _context,
+        LoginBox,
+        PasswordBox,
+        NameBox,
+        PhoneBox,
+        EmailBox,
+        this);
+}
+```
+
+Также доступны перегрузки, куда можно передать `IAuthService` и `AuthUiOptions` напрямую, если не хотите хранить `AuthUiContext` в окне.
+
 ## Примеры использования
 
 ### Пример 1: Фильтрация SQL через `DbHelper`
